@@ -1,4 +1,4 @@
-# Alphix Core Repository  [![codecov](https://codecov.io/github/yanisepfl/alphix-public/graph/badge.svg?token=JX37PW6PZA)](https://codecov.io/github/yanisepfl/alphix-public)
+# Alphix Core Repository  [![codecov](https://codecov.io/github/alphixfi/alphix-core/graph/badge.svg?token=9YOZH9CA32)](https://codecov.io/github/alphixfi/alphix-core)
 
 ![Alphix Logo](./branding-materials/logos/type/LogoTypeWhite.png)
 
@@ -125,8 +125,8 @@ All tests are built with Foundry. See [`test/alphix/README.md`](test/alphix/READ
 
 ```bash
 # Clone repository with submodules
-git clone --recurse-submodules https://github.com/yanisepfl/alphix-public.git
-cd alphix-public
+git clone --recurse-submodules https://github.com/alphixfi/alphix-core.git
+cd alphix-core
 
 # Install dependencies
 forge install
