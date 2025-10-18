@@ -126,7 +126,7 @@ All tests are built with Foundry. See [`test/alphix/README.md`](test/alphix/READ
 ```bash
 # Clone repository with submodules
 git clone --recurse-submodules https://github.com/alphixfi/alphix-core.git
-cd alphix-public
+cd alphix-core
 
 # Install dependencies
 forge install
