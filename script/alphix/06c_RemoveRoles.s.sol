@@ -13,19 +13,23 @@ import {Roles} from "./libraries/Roles.sol";
  *
  * DEPLOYMENT ORDER: 6c/11 (OPTIONAL - only if you want to revoke roles)
  *
- * Environment Variables (ALL OPTIONAL):
- * - DEPLOYMENT_NETWORK: Network identifier
+ * Environment Variables:
+ * Required:
+ * - DEPLOYMENT_NETWORK: Network identifier (e.g., BASE_SEPOLIA)
  * - ACCESS_MANAGER_{NETWORK}: AccessManager contract address
- * - FEE_POKER_{NETWORK}: Address to revoke fee poker role from (optional)
- * - REGISTRAR_{NETWORK}: Address to revoke registrar role from (optional)
+ * - ACCOUNT_PRIVATE_KEY: Private key of the broadcaster account
+ *
+ * Optional (at least one required for script to execute):
+ * - FEE_POKER_{NETWORK}: Address to revoke fee poker role from
+ * - REGISTRAR_{NETWORK}: Address to revoke registrar role from
  *
  * Optional Role Removals:
  * 1. FEE_POKER (optional) - Revoke ability to call Alphix.poke()
  * 2. REGISTRAR (optional) - Revoke ability to register pools/contracts
  *
  * Prerequisites:
- * - Broadcaster must have ADMIN_ROLE or appropriate permissions in AccessManager
- *  to successfully revoke roles
+ * - Broadcaster must have ADMIN_ROLE (role ID 0) in AccessManager
+ * - Script will check permissions before broadcasting and revert if insufficient
  */
 contract RemoveRolesScript is Script {
     function run() public {
@@ -100,10 +104,11 @@ contract RemoveRolesScript is Script {
         // Check if broadcaster has ADMIN_ROLE
         (bool hasAdminRole, uint32 executionDelay) = accessManager.hasRole(Roles.ADMIN_ROLE, broadcaster);
 
-        console.log("Has ADMIN_ROLE (ID %s): %s", Roles.ADMIN_ROLE, hasAdminRole ? "YES" : "NO");
+        console.log("Has ADMIN_ROLE (ID):", Roles.ADMIN_ROLE);
+        console.log("Has ADMIN_ROLE:", hasAdminRole ? "YES" : "NO");
 
         if (executionDelay > 0) {
-            console.log("Execution Delay: %s seconds", executionDelay);
+            console.log("Execution Delay (seconds):", executionDelay);
             console.log("");
             console.log("WARNING: Role operations will have a time delay!");
             console.log("The revocations will be scheduled, not immediate.");
@@ -120,7 +125,7 @@ contract RemoveRolesScript is Script {
             console.log("Solutions:");
             console.log("1. Use an address with ADMIN_ROLE");
             console.log("2. Grant ADMIN_ROLE to this broadcaster:");
-            console.log("   Address: %s", broadcaster);
+            console.log("   Address:", broadcaster);
             console.log("===========================================");
             revert("Broadcaster lacks ADMIN_ROLE - cannot revoke roles");
         }
@@ -138,8 +143,9 @@ contract RemoveRolesScript is Script {
         if (feePoker != address(0)) {
             (bool isMember,) = accessManager.hasRole(Roles.FEE_POKER_ROLE, feePoker);
             feePokerHadRole = isMember;
-            console.log("Fee Poker (%s):", feePoker);
-            console.log("  - Has FEE_POKER_ROLE (ID %s): %s", Roles.FEE_POKER_ROLE, isMember ? "YES" : "NO");
+            console.log("Fee Poker:", feePoker);
+            console.log("  - Has FEE_POKER_ROLE (ID):", Roles.FEE_POKER_ROLE);
+            console.log("  - Has FEE_POKER_ROLE:", isMember ? "YES" : "NO");
             if (!isMember) {
                 console.log("  - WARNING: Address does not have role to revoke!");
             }
@@ -148,8 +154,9 @@ contract RemoveRolesScript is Script {
         if (registrar != address(0)) {
             (bool isMember,) = accessManager.hasRole(Roles.REGISTRAR_ROLE, registrar);
             registrarHadRole = isMember;
-            console.log("Registrar (%s):", registrar);
-            console.log("  - Has REGISTRAR_ROLE (ID %s): %s", Roles.REGISTRAR_ROLE, isMember ? "YES" : "NO");
+            console.log("Registrar:", registrar);
+            console.log("  - Has REGISTRAR_ROLE (ID):", Roles.REGISTRAR_ROLE);
+            console.log("  - Has REGISTRAR_ROLE:", isMember ? "YES" : "NO");
             if (!isMember) {
                 console.log("  - WARNING: Address does not have role to revoke!");
             }
@@ -198,8 +205,9 @@ contract RemoveRolesScript is Script {
 
         if (feePoker != address(0)) {
             (bool isMember,) = accessManager.hasRole(Roles.FEE_POKER_ROLE, feePoker);
-            console.log("Fee Poker (%s):", feePoker);
-            console.log("  - Has FEE_POKER_ROLE (ID %s): %s", Roles.FEE_POKER_ROLE, isMember ? "YES" : "NO");
+            console.log("Fee Poker:", feePoker);
+            console.log("  - Has FEE_POKER_ROLE (ID):", Roles.FEE_POKER_ROLE);
+            console.log("  - Has FEE_POKER_ROLE:", isMember ? "YES" : "NO");
 
             if (feePokerHadRole && isMember) {
                 console.log("  - ERROR: Role revocation FAILED!");
@@ -213,8 +221,9 @@ contract RemoveRolesScript is Script {
 
         if (registrar != address(0)) {
             (bool isMember,) = accessManager.hasRole(Roles.REGISTRAR_ROLE, registrar);
-            console.log("Registrar (%s):", registrar);
-            console.log("  - Has REGISTRAR_ROLE (ID %s): %s", Roles.REGISTRAR_ROLE, isMember ? "YES" : "NO");
+            console.log("Registrar:", registrar);
+            console.log("  - Has REGISTRAR_ROLE (ID):", Roles.REGISTRAR_ROLE);
+            console.log("  - Has REGISTRAR_ROLE:", isMember ? "YES" : "NO");
 
             if (registrarHadRole && isMember) {
                 console.log("  - ERROR: Role revocation FAILED!");
@@ -236,10 +245,12 @@ contract RemoveRolesScript is Script {
         console.log("");
         console.log("Revoked Roles:");
         if (feePoker != address(0)) {
-            console.log("  - FEE_POKER (ID %s): %s", Roles.FEE_POKER_ROLE, feePoker);
+            console.log("  - FEE_POKER (ID):", Roles.FEE_POKER_ROLE);
+            console.log("  - FEE_POKER:", feePoker);
         }
         if (registrar != address(0)) {
-            console.log("  - REGISTRAR (ID %s): %s", Roles.REGISTRAR_ROLE, registrar);
+            console.log("  - REGISTRAR (ID):", Roles.REGISTRAR_ROLE);
+            console.log("  - REGISTRAR:", registrar);
         }
         console.log("");
         console.log("NOTE:");
