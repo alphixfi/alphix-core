@@ -21,6 +21,10 @@ import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManage
  * Optional Role Removals:
  * 1. FEE_POKER (optional) - Revoke ability to call Alphix.poke()
  * 2. REGISTRAR (optional) - Revoke ability to register pools/contracts
+ *
+ * Prerequisites:
+ * - Broadcaster must have ADMIN_ROLE or appropriate permissions in AccessManager
+ *  to successfully revoke roles
  */
 contract RemoveRolesScript is Script {
     // Role IDs (must match those used in 06b_ConfigureRoles.s.sol)
@@ -86,6 +90,34 @@ contract RemoveRolesScript is Script {
 
         AccessManager accessManager = AccessManager(accessManagerAddr);
 
+        // Pre-revocation verification
+        console.log("PRE-REVOCATION VERIFICATION");
+        console.log("-------------------------------------------");
+
+        bool feePokerHadRole = false;
+        bool registrarHadRole = false;
+
+        if (feePoker != address(0)) {
+            (bool isMember,) = accessManager.hasRole(FEE_POKER_ROLE, feePoker);
+            feePokerHadRole = isMember;
+            console.log("Fee Poker (%s):", feePoker);
+            console.log("  - Has FEE_POKER_ROLE (ID %s): %s", FEE_POKER_ROLE, isMember ? "YES" : "NO");
+            if (!isMember) {
+                console.log("  - WARNING: Address does not have role to revoke!");
+            }
+        }
+
+        if (registrar != address(0)) {
+            (bool isMember,) = accessManager.hasRole(REGISTRAR_ROLE, registrar);
+            registrarHadRole = isMember;
+            console.log("Registrar (%s):", registrar);
+            console.log("  - Has REGISTRAR_ROLE (ID %s): %s", REGISTRAR_ROLE, isMember ? "YES" : "NO");
+            if (!isMember) {
+                console.log("  - WARNING: Address does not have role to revoke!");
+            }
+        }
+        console.log("");
+
         vm.startBroadcast();
 
         // Optional: Remove Fee Poker Role
@@ -113,6 +145,46 @@ contract RemoveRolesScript is Script {
         }
 
         vm.stopBroadcast();
+
+        // Post-revocation verification
+        console.log("POST-REVOCATION VERIFICATION");
+        console.log("-------------------------------------------");
+
+        bool allRevocationsSuccessful = true;
+
+        if (feePoker != address(0)) {
+            (bool isMember,) = accessManager.hasRole(FEE_POKER_ROLE, feePoker);
+            console.log("Fee Poker (%s):", feePoker);
+            console.log("  - Has FEE_POKER_ROLE (ID %s): %s", FEE_POKER_ROLE, isMember ? "YES" : "NO");
+
+            if (feePokerHadRole && isMember) {
+                console.log("  - ERROR: Role revocation FAILED!");
+                allRevocationsSuccessful = false;
+            } else if (feePokerHadRole && !isMember) {
+                console.log("  - SUCCESS: Role successfully revoked");
+            } else if (!feePokerHadRole && !isMember) {
+                console.log("  - INFO: Role was not assigned (nothing to revoke)");
+            }
+        }
+
+        if (registrar != address(0)) {
+            (bool isMember,) = accessManager.hasRole(REGISTRAR_ROLE, registrar);
+            console.log("Registrar (%s):", registrar);
+            console.log("  - Has REGISTRAR_ROLE (ID %s): %s", REGISTRAR_ROLE, isMember ? "YES" : "NO");
+
+            if (registrarHadRole && isMember) {
+                console.log("  - ERROR: Role revocation FAILED!");
+                allRevocationsSuccessful = false;
+            } else if (registrarHadRole && !isMember) {
+                console.log("  - SUCCESS: Role successfully revoked");
+            } else if (!registrarHadRole && !isMember) {
+                console.log("  - INFO: Role was not assigned (nothing to revoke)");
+            }
+        }
+
+        console.log("");
+
+        require(allRevocationsSuccessful, "One or more role revocations failed verification");
 
         console.log("===========================================");
         console.log("ROLE REMOVAL COMPLETE");
