@@ -5,6 +5,7 @@ import {Script} from "forge-std/Script.sol";
 import {console} from "forge-std/console.sol";
 import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManager.sol";
 import {Alphix} from "../../src/Alphix.sol";
+import {Roles} from "./libraries/Roles.sol";
 
 /**
  * @title Configure Additional AccessManager Roles (Optional)
@@ -28,10 +29,6 @@ import {Alphix} from "../../src/Alphix.sol";
  * 2. REGISTRAR (additional, optional) - Additional address for pool/contract registration
  */
 contract ConfigureRolesScript is Script {
-    // Role IDs (arbitrary unique identifiers)
-    uint64 constant FEE_POKER_ROLE = 1;
-    uint64 constant REGISTRAR_ROLE = 2;
-
     function run() public {
         // Load environment variables
         string memory network = vm.envString("DEPLOYMENT_NETWORK");
@@ -116,10 +113,10 @@ contract ConfigureRolesScript is Script {
             // Set function as restricted to FEE_POKER_ROLE
             bytes4[] memory pokeSelectors = new bytes4[](1);
             pokeSelectors[0] = pokeSelector;
-            accessManager.setTargetFunctionRole(alphixHookAddr, pokeSelectors, FEE_POKER_ROLE);
+            accessManager.setTargetFunctionRole(alphixHookAddr, pokeSelectors, Roles.FEE_POKER_ROLE);
 
             // Grant FEE_POKER_ROLE to the fee poker address
-            accessManager.grantRole(FEE_POKER_ROLE, feePoker, 0); // 0 = immediate effect
+            accessManager.grantRole(Roles.FEE_POKER_ROLE, feePoker, 0); // 0 = immediate effect
 
             console.log("  - Fee Poker role granted to:", feePoker);
             console.log("  - Can now call poke() on Alphix Hook");
@@ -131,7 +128,7 @@ contract ConfigureRolesScript is Script {
             console.log("Configuring additional Registrar role (optional)...");
 
             // Grant REGISTRAR_ROLE to additional registrar address
-            accessManager.grantRole(REGISTRAR_ROLE, registrar, 0); // 0 = immediate effect
+            accessManager.grantRole(Roles.REGISTRAR_ROLE, registrar, 0); // 0 = immediate effect
 
             console.log("  - REGISTRAR role granted to:", registrar);
             console.log("  - Can call registerContract() and registerPool() on Registry");
@@ -146,10 +143,10 @@ contract ConfigureRolesScript is Script {
         console.log("");
         console.log("Configured Roles:");
         if (feePoker != address(0)) {
-            console.log("  - FEE_POKER (ID %s): %s", FEE_POKER_ROLE, feePoker);
+            console.log("  - FEE_POKER (ID %s): %s", Roles.FEE_POKER_ROLE, feePoker);
         }
         if (registrar != address(0)) {
-            console.log("  - REGISTRAR (ID %s): %s", REGISTRAR_ROLE, registrar);
+            console.log("  - REGISTRAR (ID %s): %s", Roles.REGISTRAR_ROLE, registrar);
         }
         console.log("");
         console.log("NEXT STEPS:");
