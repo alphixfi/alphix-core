@@ -28,6 +28,7 @@ import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManage
  */
 contract RemoveRolesScript is Script {
     // Role IDs (must match those used in 06b_ConfigureRoles.s.sol)
+    uint64 constant ADMIN_ROLE = 0; // OpenZeppelin AccessManager admin role
     uint64 constant FEE_POKER_ROLE = 1;
     uint64 constant REGISTRAR_ROLE = 2;
 
@@ -89,6 +90,47 @@ contract RemoveRolesScript is Script {
         console.log("");
 
         AccessManager accessManager = AccessManager(accessManagerAddr);
+
+        // Check broadcaster permissions
+        console.log("BROADCASTER PERMISSION CHECK");
+        console.log("-------------------------------------------");
+
+        // Get the broadcaster address
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address broadcaster = vm.addr(deployerPrivateKey);
+
+        console.log("Broadcaster Address:", broadcaster);
+
+        // Check if broadcaster has ADMIN_ROLE
+        (bool hasAdminRole, uint32 executionDelay) = accessManager.hasRole(ADMIN_ROLE, broadcaster);
+
+        console.log("Has ADMIN_ROLE (ID %s): %s", ADMIN_ROLE, hasAdminRole ? "YES" : "NO");
+
+        if (executionDelay > 0) {
+            console.log("Execution Delay: %s seconds", executionDelay);
+            console.log("");
+            console.log("WARNING: Role operations will have a time delay!");
+            console.log("The revocations will be scheduled, not immediate.");
+        }
+
+        if (!hasAdminRole) {
+            console.log("");
+            console.log("===========================================");
+            console.log("ERROR: INSUFFICIENT PERMISSIONS");
+            console.log("===========================================");
+            console.log("The broadcaster does not have ADMIN_ROLE.");
+            console.log("Role revocation requires admin permissions.");
+            console.log("");
+            console.log("Solutions:");
+            console.log("1. Use an address with ADMIN_ROLE");
+            console.log("2. Grant ADMIN_ROLE to this broadcaster:");
+            console.log("   Address: %s", broadcaster);
+            console.log("===========================================");
+            revert("Broadcaster lacks ADMIN_ROLE - cannot revoke roles");
+        }
+
+        console.log("Permission check: PASSED");
+        console.log("");
 
         // Pre-revocation verification
         console.log("PRE-REVOCATION VERIFICATION");
