@@ -430,7 +430,6 @@ contract Alphix is
     function _getFee(PoolKey calldata key, uint256 currentRatio)
         internal
         view
-        override
         validLogic
         returns (uint24 fee, uint256 oldTargetRatio, uint256 newTargetRatio, DynamicFeeLib.OobState memory sOut)
     {
