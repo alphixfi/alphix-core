@@ -267,7 +267,7 @@ contract PoolTypeParamsBehaviorChangeTest is BaseAlphixTest {
 
         // Now change to restrictive params with a much lower maxFee
         vm.prank(owner);
-        hook.setPoolTypeParams(IAlphixLogic.PoolType.STABLE, restrictiveParams);
+        logic.setPoolTypeParams(IAlphixLogic.PoolType.STABLE, restrictiveParams);
 
         // The current fee is above restrictive maxFee, but it should NOT be automatically clamped
         (,,, uint24 feeAfterParamChange) = poolManager.getSlot0(poolId);
