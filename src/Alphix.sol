@@ -93,7 +93,6 @@ contract Alphix is
             revert InvalidAddress();
         }
         _setLogic(_logic);
-        IRegistry(registry).registerContract(IRegistry.ContractKey.AlphixLogic, _logic);
         _unpause();
     }
 
@@ -409,6 +408,7 @@ contract Alphix is
         }
         emit LogicUpdated(logic, newLogic);
         logic = newLogic;
+        IRegistry(registry).registerContract(IRegistry.ContractKey.AlphixLogic, newLogic);
     }
 
     /**
