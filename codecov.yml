@@ -2,7 +2,8 @@ coverage:
   status:
     project:
       default:
-        target: 80%
+        target: 95%
+        threshold: 3%
 ignore:
   - "test/**"
   - "script/**"
