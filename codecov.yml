@@ -4,6 +4,10 @@ coverage:
       default:
         target: 95%
         threshold: 3%
+    patch:
+      default:
+        target: 95%
+        threshold: 3%
 ignore:
   - "test/**"
   - "script/**"
