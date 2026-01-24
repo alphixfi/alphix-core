@@ -190,6 +190,8 @@ contract RedeemETHFuzzTest is BaseAlphix4626WrapperWethAave {
         // Ensure receiver can accept ETH (exclude contracts and precompiles 0x01-0x09)
         vm.assume(receiver.code.length == 0);
         vm.assume(uint160(receiver) > 10);
+        // Exclude Foundry's console.log precompile which cannot receive ETH
+        vm.assume(receiver != 0x000000000000000000636F6e736F6c652e6c6f67);
 
         depositAmount = bound(depositAmount, 0.1 ether, 100 ether);
         redeemPercent = bound(redeemPercent, 1, 100);
