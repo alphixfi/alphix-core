@@ -17,7 +17,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_yieldAccrual_varyingAmounts(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         uint256 depositAmount = depositMultiplier * 1e18;
 
         _depositAsHook(depositAmount, alphixHook);
@@ -42,7 +42,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_yieldAccrual_feeCalculation(uint256 depositMultiplier, uint256 yieldPercent, uint24 fee) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         fee = _boundFee(fee);
         uint256 depositAmount = depositMultiplier * 1e18;
 
@@ -100,7 +100,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_yieldAccrual_zeroFee(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         uint256 depositAmount = depositMultiplier * 1e18;
 
         // Set fee to 0
@@ -131,7 +131,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_yieldAccrual_maxFee(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         uint256 depositAmount = depositMultiplier * 1e18;
 
         // Set fee to max (100%)
@@ -164,7 +164,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
         uint256 secondDeposit
     ) public {
         initialDeposit = bound(initialDeposit, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         secondDeposit = bound(secondDeposit, 1, 100_000_000);
 
         uint256 amount1 = initialDeposit * 1e18;
@@ -197,7 +197,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_yieldAccrual_rateChanges(uint256 depositMultiplier, uint256 rateMultiplier) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        rateMultiplier = bound(rateMultiplier, 101, 105); // 1.01x to 1.05x (circuit breaker limits to 5%)
+        rateMultiplier = bound(rateMultiplier, 101, 101); // 1.01x (circuit breaker limits to 1%)
         uint256 depositAmount = depositMultiplier * 1e18;
 
         _depositAsHook(depositAmount, alphixHook);

@@ -19,8 +19,8 @@ contract FeeFlowFuzzTest is BaseAlphix4626WrapperSky {
         uint256 depositAmount = depositMultiplier * 1e18;
         _depositAsHook(depositAmount, alphixHook);
 
-        // Generate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Generate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         uint256 feesBefore = wrapper.getClaimableFees();
 
@@ -39,12 +39,12 @@ contract FeeFlowFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_feeFlow_collection(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 10_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5);
+        yieldPercent = bound(yieldPercent, 1, 1);
 
         uint256 depositAmount = depositMultiplier * 1e18;
         _depositAsHook(depositAmount, alphixHook);
 
-        // Generate yield (respects circuit breaker - max 5%)
+        // Generate yield (respects circuit breaker - max 1%)
         _simulateYieldPercent(yieldPercent);
 
         uint256 claimableFees = wrapper.getClaimableFees();
@@ -74,7 +74,7 @@ contract FeeFlowFuzzTest is BaseAlphix4626WrapperSky {
         uint256 totalCollected;
 
         for (uint256 i = 0; i < yieldPercents.length; i++) {
-            uint256 yieldPct = bound(yieldPercents[i], 1, 5);
+            uint256 yieldPct = bound(yieldPercents[i], 1, 1);
             _simulateYieldPercent(yieldPct);
 
             uint256 fees = wrapper.getClaimableFees();
@@ -98,7 +98,7 @@ contract FeeFlowFuzzTest is BaseAlphix4626WrapperSky {
     {
         depositMultiplier = bound(depositMultiplier, 1, 1_000_000);
         withdrawPercent = bound(withdrawPercent, 1, 50);
-        yieldPercent = bound(yieldPercent, 1, 5);
+        yieldPercent = bound(yieldPercent, 1, 1);
 
         uint256 depositAmount = depositMultiplier * 1e18;
         _depositAsHook(depositAmount, alphixHook);
@@ -133,7 +133,7 @@ contract FeeFlowFuzzTest is BaseAlphix4626WrapperSky {
     function testFuzz_feeFlow_varyingRates(uint256 depositMultiplier, uint24 feeRate, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 1_000_000);
         feeRate = _boundFee(feeRate);
-        yieldPercent = bound(yieldPercent, 1, 5);
+        yieldPercent = bound(yieldPercent, 1, 1);
 
         // Set initial fee rate
         vm.prank(owner);
@@ -142,7 +142,7 @@ contract FeeFlowFuzzTest is BaseAlphix4626WrapperSky {
         uint256 depositAmount = depositMultiplier * 1e18;
         _depositAsHook(depositAmount, alphixHook);
 
-        // Generate yield (respects circuit breaker - max 5%)
+        // Generate yield (respects circuit breaker - max 1%)
         _simulateYieldPercent(yieldPercent);
 
         // Trigger accrual

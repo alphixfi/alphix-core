@@ -15,7 +15,7 @@ contract NegativeYieldFlowFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_negativeYieldFlow_varyingSlash(uint256 depositMultiplier, uint256 slashPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 10_000_000);
-        slashPercent = bound(slashPercent, 1, 5);
+        slashPercent = bound(slashPercent, 1, 1);
 
         uint256 depositAmount = depositMultiplier * 1e18;
         _depositAsHook(depositAmount, alphixHook);
@@ -42,8 +42,8 @@ contract NegativeYieldFlowFuzzTest is BaseAlphix4626WrapperSky {
         uint256 slashPercent
     ) public {
         depositMultiplier = bound(depositMultiplier, 1, 1_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5);
-        slashPercent = bound(slashPercent, 1, 5);
+        yieldPercent = bound(yieldPercent, 1, 1);
+        slashPercent = bound(slashPercent, 1, 1);
 
         uint256 depositAmount = depositMultiplier * 1e18;
         _depositAsHook(depositAmount, alphixHook);
@@ -82,7 +82,7 @@ contract NegativeYieldFlowFuzzTest is BaseAlphix4626WrapperSky {
         uint256 recoveryPercent
     ) public {
         depositMultiplier = bound(depositMultiplier, 1, 1_000_000);
-        slashPercent = bound(slashPercent, 1, 5);
+        slashPercent = bound(slashPercent, 1, 1);
         recoveryPercent = bound(recoveryPercent, 1, 5);
 
         uint256 depositAmount = depositMultiplier * 1e18;
@@ -114,7 +114,7 @@ contract NegativeYieldFlowFuzzTest is BaseAlphix4626WrapperSky {
         uint256 withdrawPercent
     ) public {
         depositMultiplier = bound(depositMultiplier, 1, 1_000_000);
-        slashPercent = bound(slashPercent, 1, 5);
+        slashPercent = bound(slashPercent, 1, 1);
         withdrawPercent = bound(withdrawPercent, 1, 100);
 
         uint256 depositAmount = depositMultiplier * 1e18;
@@ -149,8 +149,8 @@ contract NegativeYieldFlowFuzzTest is BaseAlphix4626WrapperSky {
 
         _depositAsHook(depositAmount, alphixHook);
 
-        // Generate initial yield and fees (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Generate initial yield and fees (1% respects circuit breaker)
+        _simulateYieldPercent(1);
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
@@ -158,7 +158,7 @@ contract NegativeYieldFlowFuzzTest is BaseAlphix4626WrapperSky {
 
         // Multiple slashes
         for (uint256 i = 0; i < slashPercents.length; i++) {
-            uint256 slashPct = bound(slashPercents[i], 1, 5);
+            uint256 slashPct = bound(slashPercents[i], 1, 1);
             _simulateSlashPercent(slashPct);
 
             vm.prank(owner);
@@ -180,8 +180,8 @@ contract NegativeYieldFlowFuzzTest is BaseAlphix4626WrapperSky {
         uint256 slashPercent
     ) public {
         depositMultiplier = bound(depositMultiplier, 1, 1_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5);
-        slashPercent = bound(slashPercent, 1, 5);
+        yieldPercent = bound(yieldPercent, 1, 1);
+        slashPercent = bound(slashPercent, 1, 1);
 
         uint256 depositAmount = depositMultiplier * 1e18;
         _depositAsHook(depositAmount, alphixHook);

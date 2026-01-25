@@ -126,7 +126,7 @@ contract WrapperHandler is Test {
      * @dev Capped at MAX_CUMULATIVE_RATE to prevent unrealistic compounding
      */
     function simulateYield(uint256 yieldPercent) external {
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         calls["simulateYield"]++;
 
         // Check if we've hit the cumulative rate cap
@@ -144,7 +144,7 @@ contract WrapperHandler is Test {
      * @notice Handler for negative yield (slash)
      */
     function simulateSlash(uint256 slashPercent) external {
-        slashPercent = bound(slashPercent, 1, 5); // Circuit breaker limits to 5%
+        slashPercent = bound(slashPercent, 1, 1); // Circuit breaker limits to 1%
         calls["simulateSlash"]++;
 
         rateProvider.simulateSlash(slashPercent);

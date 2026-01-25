@@ -38,7 +38,7 @@ contract DepositFlowFuzzTest is BaseAlphix4626WrapperSky {
     ) public {
         deposit1Multiplier = bound(deposit1Multiplier, 1, 10_000_000);
         deposit2Multiplier = bound(deposit2Multiplier, 1, 10_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5);
+        yieldPercent = bound(yieldPercent, 1, 1);
 
         uint256 deposit1 = deposit1Multiplier * 1e18;
         uint256 deposit2 = deposit2Multiplier * 1e18;
@@ -66,11 +66,11 @@ contract DepositFlowFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_depositFlow_atVaryingRates(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 10_000_000);
-        yieldPercent = bound(yieldPercent, 0, 5);
+        yieldPercent = bound(yieldPercent, 0, 1);
 
         uint256 depositAmount = depositMultiplier * 1e18;
 
-        // Set initial rate (via yield, respects circuit breaker - max 5%)
+        // Set initial rate (via yield, respects circuit breaker - max 1%)
         if (yieldPercent > 0) {
             _depositAsHook(100e18, alphixHook); // Initial deposit to generate yield on
             _simulateYieldPercent(yieldPercent);
@@ -134,8 +134,8 @@ contract DepositFlowFuzzTest is BaseAlphix4626WrapperSky {
         // Initial deposit
         _depositAsHook(depositAmount, alphixHook);
 
-        // Generate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Generate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Change fee
         vm.prank(owner);

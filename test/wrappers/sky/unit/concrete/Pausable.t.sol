@@ -326,7 +326,7 @@ contract PausableTest is BaseAlphix4626WrapperSky {
     function test_collectFees_succeedsWhenPaused() public {
         // Deposit and generate yield first
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         vm.startPrank(owner);
         wrapper.pause();

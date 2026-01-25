@@ -78,6 +78,14 @@ interface IAlphix4626WrapperSky {
      */
     event CircuitBreakerTriggered(uint256 lastRate, uint256 currentRate, uint256 changeBps);
 
+    /**
+     * @notice Emitted when _lastRate is synced towards the current rate.
+     * @param oldRate The previous _lastRate value.
+     * @param newRate The new _lastRate value after sync.
+     * @param targetRate The actual current rate from the rate provider.
+     */
+    event RateSynced(uint256 indexed oldRate, uint256 indexed newRate, uint256 targetRate);
+
     /* ERRORS */
 
     /**
@@ -177,6 +185,11 @@ interface IAlphix4626WrapperSky {
      * @param changeBps The actual rate change in basis points.
      */
     error ExcessiveRateChange(uint256 lastRate, uint256 currentRate, uint256 changeBps);
+
+    /**
+     * @dev Thrown when syncRate() is called but no sync is needed.
+     */
+    error NoSyncNeeded();
 
     /* FEE RELATED FUNCTIONS */
 
@@ -291,4 +304,15 @@ interface IAlphix4626WrapperSky {
      * @dev Only callable by the owner. Cannot rescue sUSDS.
      */
     function rescueTokens(address token, uint256 amount) external;
+
+    /* RATE SYNC */
+
+    /**
+     * @notice Syncs _lastRate to the current rate, accruing yield and bypassing circuit breaker.
+     * @dev Use when circuit breaker blocks operations due to large rate jump.
+     *      Sets _lastRate directly to current rate in a single call.
+     *      Accrues yield (and fees) for the rate change.
+     *      Reverts if no sync is needed (rate unchanged or lastRate is 0).
+     */
+    function syncRate() external;
 }

@@ -28,7 +28,7 @@ contract ConvertToAssetsTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate 10% yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 shares = 1000e18;
         uint256 assets = wrapper.convertToAssets(shares);
@@ -59,9 +59,9 @@ contract ConvertToAssetsTest is BaseAlphix4626WrapperSky {
      */
     function test_convertToAssets_afterMultipleDepositsAndYield() public {
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         _depositAsHook(500e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 shares = 100e18;
         uint256 assets = wrapper.convertToAssets(shares);
@@ -75,7 +75,7 @@ contract ConvertToAssetsTest is BaseAlphix4626WrapperSky {
      */
     function test_convertToAssets_consistentWithPreviewRedeem() public {
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 shares = 100e18;
         uint256 assetsFromConvert = wrapper.convertToAssets(shares);
@@ -101,7 +101,7 @@ contract ConvertToAssetsTest is BaseAlphix4626WrapperSky {
      */
     function test_convertRoundtrip() public {
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 originalAssets = 100e18;
         uint256 shares = wrapper.convertToShares(originalAssets);

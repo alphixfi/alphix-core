@@ -102,7 +102,7 @@ contract RedeemTest is BaseAlphix4626WrapperSky {
         uint256 assetsBefore = wrapper.previewRedeem(shares);
 
         // Simulate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 assetsAfter = wrapper.previewRedeem(shares);
         assertGt(assetsAfter, assetsBefore, "Should receive more assets after yield");

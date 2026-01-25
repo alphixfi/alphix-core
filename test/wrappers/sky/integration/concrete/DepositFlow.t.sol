@@ -52,8 +52,8 @@ contract DepositFlowTest is BaseAlphix4626WrapperSky {
         uint256 deposit1 = 1_000e18;
         uint256 shares1 = _depositAsHook(deposit1, alphixHook);
 
-        // Simulate yield (rate increase, 5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate yield (rate increase, 1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Second deposit (should get fewer shares due to yield)
         uint256 deposit2 = 1_000e18;
@@ -76,8 +76,8 @@ contract DepositFlowTest is BaseAlphix4626WrapperSky {
         uint256 deposit1 = 1_000e18;
         _depositAsHook(deposit1, alphixHook);
 
-        // Simulate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Change fee to 50%
         vm.prank(owner);
@@ -151,8 +151,8 @@ contract DepositFlowTest is BaseAlphix4626WrapperSky {
         uint256 deposit1 = 1_000e18;
         uint256 shares1 = _depositAsHook(deposit1, alphixHook);
 
-        // Simulate 5% rate increase (respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate 1% rate increase (respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Deposit at higher rate
         uint256 deposit2 = 1_000e18;
@@ -182,10 +182,10 @@ contract DepositFlowTest is BaseAlphix4626WrapperSky {
         // Initial deposit
         uint256 initialShares = _depositAsHook(depositAmount, alphixHook);
 
-        // Multiple yield cycles (5% each) with accrual between each
+        // Multiple yield cycles (1% each) with accrual between each
         // Circuit breaker checks per-accrual, so we must trigger accrual between yield changes
         for (uint256 i = 0; i < 5; i++) {
-            _simulateYieldPercent(5);
+            _simulateYieldPercent(1);
             // Trigger accrual to update lastRate before next yield
             vm.prank(owner);
             wrapper.setFee(DEFAULT_FEE);

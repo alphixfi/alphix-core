@@ -42,14 +42,14 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
         // Simulate 10% yield via rate increase
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
 
-        // Total yield = 5% of (seed + deposit) - limited by circuit breaker
+        // Total yield = 1% of (seed + deposit) - limited by circuit breaker
         // Fee = 10% of yield (DEFAULT_FEE = 100_000 = 10%)
         // Net increase = yield - fee = 90% of yield
-        uint256 grossYield = (DEFAULT_SEED_LIQUIDITY + depositAmount) * 5 / 100;
+        uint256 grossYield = (DEFAULT_SEED_LIQUIDITY + depositAmount) * 1 / 100;
         uint256 expectedIncrease = grossYield * (MAX_FEE - DEFAULT_FEE) / MAX_FEE;
 
         assertGt(totalAssetsAfter, totalAssetsBefore, "Total assets should increase after yield");
@@ -72,12 +72,12 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
         // Simulate 10% yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
 
-        // With 0% fee, all yield goes to totalAssets
-        uint256 expectedYield = (DEFAULT_SEED_LIQUIDITY + depositAmount) * 5 / 100;
+        // With 0% fee, all yield goes to totalAssets (1% yield)
+        uint256 expectedYield = (DEFAULT_SEED_LIQUIDITY + depositAmount) * 1 / 100;
 
         _assertApproxEq(
             totalAssetsAfter - totalAssetsBefore, expectedYield, 1e15, "Should get full yield with zero fee"
@@ -98,7 +98,7 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
         // Simulate 10% yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
 
@@ -141,7 +141,7 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate yield to create fees
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 susdsBalance = susds.balanceOf(address(wrapper));
         uint256 claimableFees = wrapper.getClaimableFees();
@@ -164,7 +164,7 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
         // Increase rate by 20%
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
 
@@ -179,7 +179,7 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // First generate some yield to have fees
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -188,7 +188,7 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
         // Decrease rate by 10% (slash)
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
 

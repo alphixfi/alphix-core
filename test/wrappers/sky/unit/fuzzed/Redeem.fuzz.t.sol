@@ -142,7 +142,7 @@ contract RedeemFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_redeem_afterYield(uint256 depositMultiplier, uint256 yieldPercent, uint256 redeemPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         redeemPercent = bound(redeemPercent, 1, 100);
         uint256 depositAmount = depositMultiplier * 1e18;
 

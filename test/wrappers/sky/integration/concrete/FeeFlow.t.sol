@@ -19,7 +19,7 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(deposit, alphixHook);
 
         // Simulate yield at 10% fee
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 feesAt10Percent = wrapper.getClaimableFees();
 
@@ -32,7 +32,7 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
         assertEq(feesAfterChange, feesAt10Percent, "Fees should be preserved after fee change");
 
         // Simulate more yield at 50% fee
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 feesAfterSecondYield = wrapper.getClaimableFees();
         uint256 secondYieldFees = feesAfterSecondYield - feesAfterChange;
@@ -54,14 +54,14 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
         uint256 deposit = 10_000e18;
         _depositAsHook(deposit, alphixHook);
 
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         uint256 feesAt50Percent = wrapper.getClaimableFees();
 
         // Reduce fee to 10%
         vm.prank(owner);
         wrapper.setFee(100_000);
 
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         uint256 totalFees = wrapper.getClaimableFees();
         uint256 feesAt10Percent = totalFees - feesAt50Percent;
 
@@ -79,7 +79,7 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(deposit, alphixHook);
 
         // Generate some fees
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         uint256 feesBefore = wrapper.getClaimableFees();
         assertGt(feesBefore, 0, "Should have fees before");
 
@@ -91,7 +91,7 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
         assertEq(wrapper.getClaimableFees(), feesBefore, "Existing fees preserved");
 
         // New yield generates no fees
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         assertEq(wrapper.getClaimableFees(), feesBefore, "No new fees with zero rate");
 
         _assertSolvent();
@@ -108,7 +108,7 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
         uint256 deposit = 10_000e18;
         _depositAsHook(deposit, alphixHook);
 
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         assertEq(wrapper.getClaimableFees(), 0, "No fees at zero rate");
 
         // Enable fee
@@ -119,7 +119,7 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
         assertEq(wrapper.getClaimableFees(), 0, "Previous yield not retroactively charged");
 
         // New yield generates fees
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         assertGt(wrapper.getClaimableFees(), 0, "New yield generates fees");
 
         _assertSolvent();
@@ -137,15 +137,15 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
 
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
 
         // Total assets should not change (all yield goes to fees)
         _assertApproxEq(totalAssetsAfter, totalAssetsBefore, 2, "No asset growth at max fee");
 
-        // All yield should be fees (in sUSDS) - 5% yield with circuit breaker
-        uint256 expectedYield = (DEFAULT_SEED_LIQUIDITY + deposit) * 5 / 100;
+        // All yield should be fees (in sUSDS) - 1% yield with circuit breaker
+        uint256 expectedYield = (DEFAULT_SEED_LIQUIDITY + deposit) * 1 / 100;
         _assertApproxEq(_susdsToUsds(wrapper.getClaimableFees()), expectedYield, 2, "All yield is fees");
 
         _assertSolvent();
@@ -159,7 +159,7 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(deposit, alphixHook);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Get claimable fees
         uint256 claimableFees = wrapper.getClaimableFees();
@@ -196,7 +196,7 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
 
         for (uint256 i = 0; i < 3; i++) {
             // Generate yield
-            _simulateYieldPercent(5);
+            _simulateYieldPercent(1);
 
             // Get and collect fees
             uint256 fees = wrapper.getClaimableFees();
@@ -221,7 +221,7 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(deposit, alphixHook);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Partial withdrawal
         vm.prank(alphixHook);
@@ -258,7 +258,7 @@ contract FeeFlowTest is BaseAlphix4626WrapperSky {
         vm.stopPrank();
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Fees should be based on total yield
         uint256 claimableFees = wrapper.getClaimableFees();

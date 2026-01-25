@@ -44,8 +44,8 @@ contract WithdrawFlowTest is BaseAlphix4626WrapperSky {
         // Deposit as hook
         _depositAsHook(depositAmount, alphixHook);
 
-        // Simulate 5% yield (rate increase, respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate 1% yield (rate increase, respects circuit breaker)
+        _simulateYieldPercent(1);
 
         uint256 maxWithdrawable = wrapper.maxWithdraw(alphixHook);
         // Should be able to withdraw more than deposited (minus fees)
@@ -131,8 +131,8 @@ contract WithdrawFlowTest is BaseAlphix4626WrapperSky {
         uint256 depositAmount = 100e18;
         _depositAsHook(depositAmount, alphixHook);
 
-        // Simulate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Collect fees
         vm.prank(owner);
@@ -154,8 +154,8 @@ contract WithdrawFlowTest is BaseAlphix4626WrapperSky {
         uint256 depositAmount = 100e18;
         _depositAsHook(depositAmount, alphixHook);
 
-        // Simulate 5% rate decrease (slashing)
-        _simulateSlashPercent(5);
+        // Simulate 1% rate decrease (slashing)
+        _simulateSlashPercent(1);
 
         // maxWithdraw should be less than deposited
         uint256 maxWithdraw = wrapper.maxWithdraw(alphixHook);
@@ -183,8 +183,8 @@ contract WithdrawFlowTest is BaseAlphix4626WrapperSky {
         // Deposit more
         _depositAsHook(30e18, alphixHook);
 
-        // Simulate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Withdraw some
         vm.prank(alphixHook);
@@ -218,8 +218,8 @@ contract WithdrawFlowTest is BaseAlphix4626WrapperSky {
         wrapper.deposit(100e18, hook2);
         vm.stopPrank();
 
-        // Simulate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Hook1 withdraws
         uint256 hook1MaxWithdraw = wrapper.maxWithdraw(alphixHook);
@@ -249,8 +249,8 @@ contract WithdrawFlowTest is BaseAlphix4626WrapperSky {
         uint256 ownerShares = wrapper.balanceOf(owner);
         assertGt(ownerShares, 0, "Owner should have shares");
 
-        // Simulate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Owner withdraws
         uint256 maxWithdraw = wrapper.maxWithdraw(owner);
@@ -298,8 +298,8 @@ contract WithdrawFlowTest is BaseAlphix4626WrapperSky {
         // Record fees before yield
         uint256 feesBeforeYield = wrapper.getClaimableFees();
 
-        // Simulate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // getClaimableFees calculates pending fees in view (includes unrealized yield)
         uint256 feesAfterYield = wrapper.getClaimableFees();

@@ -28,7 +28,7 @@ contract PreviewDepositTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate 10% yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 assets = 1000e18;
         uint256 shares = wrapper.previewDeposit(assets);
@@ -59,7 +59,7 @@ contract PreviewDepositTest is BaseAlphix4626WrapperSky {
      */
     function test_previewDeposit_matchesActualDeposit() public {
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 assets = 500e18;
         uint256 expectedShares = wrapper.previewDeposit(assets);

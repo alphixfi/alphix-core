@@ -37,7 +37,7 @@ contract GettersTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate 10% yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 fees = wrapper.getClaimableFees();
 
@@ -56,7 +56,7 @@ contract GettersTest is BaseAlphix4626WrapperSky {
         wrapper.setFee(0);
 
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 fees = wrapper.getClaimableFees();
         assertEq(fees, 0, "No fees with zero fee rate");
@@ -69,14 +69,14 @@ contract GettersTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // First yield accrual
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         uint256 feesAfterFirst = wrapper.getClaimableFees();
 
         // Trigger accrual by depositing (moves pending to accumulated)
         _depositAsHook(500e18, alphixHook);
 
         // Second yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         uint256 feesAfterSecond = wrapper.getClaimableFees();
 
         assertGt(feesAfterSecond, feesAfterFirst, "Fees should accumulate");
@@ -108,7 +108,7 @@ contract GettersTest is BaseAlphix4626WrapperSky {
         uint256 lastRateBefore = wrapper.getLastRate();
 
         // Simulate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);

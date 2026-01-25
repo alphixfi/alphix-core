@@ -235,7 +235,7 @@ contract InflationAttackFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_afterYield_roundingFavorsVault(uint256 depositAmount, uint256 yieldPercent) public {
         depositAmount = bound(depositAmount, 1e18, 100_000_000e18);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
 
         // Deposit
         vm.prank(attacker);

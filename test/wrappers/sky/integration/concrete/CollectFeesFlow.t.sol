@@ -19,7 +19,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(deposit, alphixHook);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Get claimable fees
         uint256 claimableFees = wrapper.getClaimableFees();
@@ -51,7 +51,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
 
         for (uint256 i = 0; i < 5; i++) {
             // Generate yield
-            _simulateYieldPercent(5);
+            _simulateYieldPercent(1);
 
             // Get and record fees
             uint256 fees = wrapper.getClaimableFees();
@@ -78,7 +78,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(deposit, alphixHook);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Collect fees
         vm.prank(owner);
@@ -108,7 +108,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(deposit, alphixHook);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual to update lastRate before next yield (circuit breaker)
         vm.prank(owner);
@@ -122,7 +122,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
         wrapper.setYieldTreasury(newTreasury);
 
         // Generate more yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 fees2 = wrapper.getClaimableFees();
         assertGt(fees2, fees1, "Should have more fees");
@@ -146,7 +146,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(deposit, alphixHook);
 
         // Generate yield and lock in fees
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE); // Trigger accrual
 
@@ -154,7 +154,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
         assertGt(feesBeforeSlash, 0, "Should have fees");
 
         // Negative yield
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // Fees should NOT be reduced (Sky behavior)
         uint256 feesAfterSlash = wrapper.getClaimableFees();
@@ -177,7 +177,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(deposit, alphixHook);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Verify fees accumulated
         assertGt(wrapper.getClaimableFees(), 0, "Should have fees after yield");
@@ -191,7 +191,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
         assertGt(feesAfterWithdraw, 0, "Should have fees after withdrawal");
 
         // More yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Collect all fees
         uint256 totalFees = wrapper.getClaimableFees();
@@ -231,7 +231,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(deposit, alphixHook);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Record state before collection
         uint256 susdsBalanceBefore = susds.balanceOf(address(wrapper));
@@ -274,7 +274,7 @@ contract CollectFeesFlowTest is BaseAlphix4626WrapperSky {
         vm.stopPrank();
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Collect fees
         assertGt(wrapper.getClaimableFees(), 0, "Should have fees to collect");
