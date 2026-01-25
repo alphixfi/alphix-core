@@ -287,6 +287,12 @@ contract AlphixWithSkyWrapperTest is BaseAlphixTest {
         rateProvider0.simulateYield(10);
         rateProvider1.simulateYield(10);
 
+        // Sync rate to bypass circuit breaker (> 1% rate change)
+        vm.startPrank(owner);
+        skyWrapper0.syncRate();
+        skyWrapper1.syncRate();
+        vm.stopPrank();
+
         (uint256 previewAfter0, uint256 previewAfter1) =
             Alphix(address(hook)).previewRemoveReHypothecatedLiquidity(100e18);
 
@@ -310,6 +316,12 @@ contract AlphixWithSkyWrapperTest is BaseAlphixTest {
         // Simulate 10% rate appreciation
         rateProvider0.simulateYield(10);
         rateProvider1.simulateYield(10);
+
+        // Sync rate to bypass circuit breaker (> 1% rate change)
+        vm.startPrank(owner);
+        skyWrapper0.syncRate();
+        skyWrapper1.syncRate();
+        vm.stopPrank();
 
         uint256 amount0After = Alphix(address(hook)).getAmountInYieldSource(currency0);
         uint256 amount1After = Alphix(address(hook)).getAmountInYieldSource(currency1);
@@ -408,6 +420,10 @@ contract AlphixWithSkyWrapperTest is BaseAlphixTest {
         // Simulate 10% rate appreciation
         rateProvider0.simulateYield(10);
 
+        // Sync rate to bypass circuit breaker (> 1% rate change)
+        vm.prank(owner);
+        skyWrapper0.syncRate();
+
         uint256 amount0After = Alphix(address(hook)).getAmountInYieldSource(currency0);
         uint256 yieldReceived = amount0After - amount0Before;
 
@@ -421,19 +437,21 @@ contract AlphixWithSkyWrapperTest is BaseAlphixTest {
 
     /**
      * @notice Test that wrapper fee collection doesn't break hook accounting.
-     * @dev Uses small yield changes (5%) to stay within Sky wrapper's circuit breaker limit.
+     * @dev Uses 5% yield changes which requires syncRate() to bypass circuit breaker (threshold is 1%).
      */
     function test_wrapperFeeCollection_maintainsHookAccounting() public {
         _configureReHypo();
         _addRegularLp(1000e18);
         _addReHypoLiquidity(alice, 100e18);
 
-        // Simulate yield (use 5% to stay within circuit breaker limit of MAX_RATE_CHANGE_BPS = 500)
+        // Simulate yield (5% exceeds the 1% circuit breaker threshold)
         rateProvider0.simulateYield(5);
         rateProvider1.simulateYield(5);
 
-        // Trigger yield accrual by calling setFee (this locks in the rate change)
+        // Sync rate to bypass circuit breaker, then trigger accrual by calling setFee
         vm.startPrank(owner);
+        skyWrapper0.syncRate();
+        skyWrapper1.syncRate();
         skyWrapper0.setFee(WRAPPER_FEE);
         skyWrapper1.setFee(WRAPPER_FEE);
         vm.stopPrank();
@@ -506,6 +524,12 @@ contract AlphixWithSkyWrapperTest is BaseAlphixTest {
         // Simulate 20% rate decrease (slash) on both wrappers
         rateProvider0.simulateSlash(20);
         rateProvider1.simulateSlash(20);
+
+        // Sync rate to bypass circuit breaker (> 1% rate change)
+        vm.startPrank(owner);
+        skyWrapper0.syncRate();
+        skyWrapper1.syncRate();
+        vm.stopPrank();
 
         (uint256 previewAfter0, uint256 previewAfter1) =
             Alphix(address(hook)).previewRemoveReHypothecatedLiquidity(100e18);

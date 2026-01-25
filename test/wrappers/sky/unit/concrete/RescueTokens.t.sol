@@ -285,9 +285,13 @@ contract RescueTokensTest is BaseAlphix4626WrapperSky {
         _simulateStuckTokens(100e18);
 
         // Use vm.store to set _yieldTreasury to address(0)
-        // Storage slot for _yieldTreasury is slot 7 (from forge inspect storage-layout)
-        bytes32 yieldTreasurySlot = bytes32(uint256(7));
-        vm.store(address(wrapper), yieldTreasurySlot, bytes32(0));
+        // Storage layout: _yieldTreasury is at slot 8, offset 4 (packed with _paused and _fee)
+        // We need to clear only the _yieldTreasury bytes while preserving _paused and _fee
+        bytes32 slot8 = vm.load(address(wrapper), bytes32(uint256(8)));
+        // Clear bytes 4-23 (address is 20 bytes) while keeping bytes 0-3 (_paused + _fee)
+        bytes32 mask = bytes32(uint256(0xFFFFFFFF)); // Keep first 4 bytes
+        bytes32 newSlot8 = slot8 & mask; // Zero out the address part
+        vm.store(address(wrapper), bytes32(uint256(8)), newSlot8);
 
         // Verify treasury is now zero
         assertEq(wrapper.getYieldTreasury(), address(0), "Treasury should be zero");
