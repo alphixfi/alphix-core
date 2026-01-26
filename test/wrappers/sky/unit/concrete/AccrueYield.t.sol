@@ -18,7 +18,7 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
     function test_accrueYield_emitsEvent() public {
         _depositAsHook(1000e18, alphixHook);
 
-        // Simulate 10% yield via rate increase
+        // Simulate 1% yield via rate increase (circuit breaker limit)
         _simulateYieldPercent(1);
 
         // Trigger accrual via setFee - expect YieldAccrued to be emitted
@@ -129,7 +129,7 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
 
         _depositAsHook(1000e18, alphixHook);
 
-        // Simulate 10% yield
+        // Simulate 1% yield (circuit breaker limit)
         _simulateYieldPercent(1);
 
         // Trigger accrual - with 0% fee, feeAmount should be 0
@@ -161,7 +161,7 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
 
         _depositAsHook(1000e18, alphixHook);
 
-        // Simulate 10% yield
+        // Simulate 1% yield (circuit breaker limit)
         _simulateYieldPercent(1);
 
         // Trigger accrual - with 100% fee, all yield goes to fees

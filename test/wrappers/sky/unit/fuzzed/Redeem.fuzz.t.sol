@@ -137,7 +137,7 @@ contract RedeemFuzzTest is BaseAlphix4626WrapperSky {
     /**
      * @notice Fuzz test redeem after yield.
      * @param depositMultiplier The deposit amount multiplier.
-     * @param yieldPercent Yield percentage (1-100).
+     * @param yieldPercent Yield percentage (1%, limited by circuit breaker).
      * @param redeemPercent Percentage of shares to redeem.
      */
     function testFuzz_redeem_afterYield(uint256 depositMultiplier, uint256 yieldPercent, uint256 redeemPercent) public {

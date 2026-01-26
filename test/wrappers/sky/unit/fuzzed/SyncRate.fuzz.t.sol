@@ -13,7 +13,7 @@ contract SyncRateFuzzTest is BaseAlphix4626WrapperSky {
     /**
      * @notice Fuzz test: syncRate works for any yield percentage.
      * @param depositAmount The deposit amount.
-     * @param yieldPercent The yield percentage (1-100).
+     * @param yieldPercent The yield percentage (2-100, > 1% to trigger circuit breaker).
      */
     function testFuzz_syncRate_anyYieldPercent(uint256 depositAmount, uint256 yieldPercent) public {
         depositAmount = bound(depositAmount, 100e18, 10_000_000e18);
@@ -42,7 +42,7 @@ contract SyncRateFuzzTest is BaseAlphix4626WrapperSky {
     /**
      * @notice Fuzz test: syncRate works for any slash percentage.
      * @param depositAmount The deposit amount.
-     * @param slashPercent The slash percentage (6-50).
+     * @param slashPercent The slash percentage (2-50, > 1% to trigger circuit breaker).
      */
     function testFuzz_syncRate_anySlashPercent(uint256 depositAmount, uint256 slashPercent) public {
         depositAmount = bound(depositAmount, 100e18, 10_000_000e18);

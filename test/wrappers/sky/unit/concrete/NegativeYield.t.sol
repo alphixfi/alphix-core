@@ -21,7 +21,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
     function test_negativeYield_doesNotReduceAccumulatedFees() public {
         // Setup: deposit and generate yield to accumulate fees
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(1); // 20% yield
+        _simulateYieldPercent(1); // 1% yield (circuit breaker limit)
 
         // Trigger accrual to lock in fees
         vm.prank(owner);
@@ -30,7 +30,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         uint256 feesBefore = wrapper.getClaimableFees();
         assertGt(feesBefore, 0, "Should have accumulated fees");
 
-        // Simulate 10% rate decrease (slash)
+        // Simulate 1% rate decrease (slash, circuit breaker limit)
         _simulateSlashPercent(1);
 
         // Trigger accrual
@@ -73,13 +73,13 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
     function test_negativeYield_maintainsSolvency() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(1); // Large yield
+        _simulateYieldPercent(1); // 1% yield (circuit breaker limit)
 
         // Trigger accrual
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Simulate 30% rate decrease
+        // Simulate 1% rate decrease (circuit breaker limit)
         _simulateSlashPercent(1);
 
         // Trigger accrual
@@ -170,14 +170,14 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
 
         uint256 feesBefore = wrapper.getClaimableFees();
 
-        // First slash: 10%
+        // First slash: 1% (circuit breaker limit)
         _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Second slash: 10%
+        // Second slash: 1% (circuit breaker limit)
         _simulateSlashPercent(1);
 
         // Trigger accrual
@@ -204,7 +204,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
 
         uint256 feesAfterFirstYield = wrapper.getClaimableFees();
 
-        // Slash 10%
+        // Slash 1% (circuit breaker limit)
         _simulateSlashPercent(1);
 
         // Trigger accrual
@@ -241,7 +241,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Slash 90%
+        // Slash 1% (circuit breaker limit)
         _simulateSlashPercent(1);
 
         // Trigger accrual

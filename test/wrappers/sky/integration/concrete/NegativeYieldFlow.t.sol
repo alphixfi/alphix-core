@@ -34,7 +34,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         assertGt(feesAfterYield, 0, "Should have fees from yield");
         assertGt(totalAssetsAfterYield, initialTotalAssets, "Total assets should increase");
 
-        // Simulate 25% rate decrease (slash)
+        // Simulate 1% rate decrease (slash, circuit breaker limit)
         _simulateSlashPercent(1);
 
         // Trigger accrual
@@ -81,7 +81,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Slash 30%
+        // Slash 1% (circuit breaker limit)
         _simulateSlashPercent(1);
 
         // Trigger accrual
@@ -119,7 +119,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
 
         uint256 totalAssetsBeforeSlash = wrapper.totalAssets();
 
-        // Slash 20%
+        // Slash 1% (circuit breaker limit)
         _simulateSlashPercent(1);
 
         // Trigger accrual
@@ -129,7 +129,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 totalAssetsAfterSlash = wrapper.totalAssets();
         assertLt(totalAssetsAfterSlash, totalAssetsBeforeSlash, "Assets should decrease");
 
-        // Generate recovery yield (30%)
+        // Generate recovery yield (1%, circuit breaker limit)
         _simulateYieldPercent(1);
 
         // Trigger accrual
@@ -196,7 +196,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Extreme slash: 90%
+        // Slash 1% (circuit breaker limit)
         _simulateSlashPercent(1);
 
         // Trigger accrual
@@ -225,7 +225,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         // Deposit
         _depositAsHook(1000e18, alphixHook);
 
-        // Generate substantial yield
+        // Generate 1% yield (circuit breaker limit)
         _simulateYieldPercent(1);
 
         // Trigger accrual to lock in fees
@@ -327,7 +327,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 rateBeforeSlash = wrapper.getLastRate();
         assertGt(rateBeforeSlash, INITIAL_RATE, "Rate should have increased from yield");
 
-        // Slash (0.5% is within 1% threshold)
+        // Slash 1% (within circuit breaker threshold)
         _simulateSlashPercent(1);
 
         // Trigger accrual

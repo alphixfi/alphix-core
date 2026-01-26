@@ -168,10 +168,12 @@ contract ReHypothecationInvariantsTest is StdInvariant, BaseAlphixTest {
         uint256 totalSupply = Alphix(address(hook)).totalSupply();
         if (totalSupply < 1e15) return;
 
-        // Cap yield to a realistic percentage of existing deposits (max ~100% yield)
+        // Cap yield to a realistic percentage of the selected vault's assets
+        // Use the vault that will receive yield (based on currencySeed) to avoid exceeding principal
         uint256 existingAssets0 = Alphix(address(hook)).getAmountInYieldSource(currency0);
         uint256 existingAssets1 = Alphix(address(hook)).getAmountInYieldSource(currency1);
-        uint256 maxYield = (existingAssets0 + existingAssets1) / 2; // ~50% of average
+        uint256 selectedAssets = (currencySeed % 2 == 0) ? existingAssets0 : existingAssets1;
+        uint256 maxYield = selectedAssets / 2; // Cap at ~50% of selected vault's assets
         if (maxYield < 1e16) maxYield = 1e16; // Minimum yield for test coverage
 
         uint256 yieldAmount = bound(amountSeed, 1e16, maxYield > 10e18 ? 10e18 : maxYield);

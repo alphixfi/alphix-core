@@ -27,7 +27,7 @@ contract PreviewDepositTest is BaseAlphix4626WrapperSky {
     function test_previewDeposit_afterYield() public {
         _depositAsHook(1000e18, alphixHook);
 
-        // Simulate 10% yield
+        // Simulate 1% yield (circuit breaker limit)
         _simulateYieldPercent(1);
 
         uint256 assets = 1000e18;

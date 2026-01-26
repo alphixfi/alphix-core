@@ -13,7 +13,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
     /**
      * @notice Fuzz test yield accrual with varying deposit and yield amounts.
      * @param depositMultiplier The deposit amount multiplier.
-     * @param yieldPercent The yield percentage (1-5, limited by circuit breaker).
+     * @param yieldPercent The yield percentage (1%, limited by circuit breaker).
      */
     function testFuzz_yieldAccrual_varyingAmounts(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
@@ -37,7 +37,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
     /**
      * @notice Fuzz test that fees are correctly calculated on yield.
      * @param depositMultiplier The deposit amount multiplier.
-     * @param yieldPercent The yield percentage (1-5, limited by circuit breaker).
+     * @param yieldPercent The yield percentage (1%, limited by circuit breaker).
      * @param fee The fee rate (0 to MAX_FEE).
      */
     function testFuzz_yieldAccrual_feeCalculation(uint256 depositMultiplier, uint256 yieldPercent, uint24 fee) public {
@@ -96,7 +96,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
     /**
      * @notice Fuzz test that zero fee results in all yield going to depositors.
      * @param depositMultiplier The deposit amount multiplier.
-     * @param yieldPercent The yield percentage (1-5, limited by circuit breaker).
+     * @param yieldPercent The yield percentage (1%, limited by circuit breaker).
      */
     function testFuzz_yieldAccrual_zeroFee(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
@@ -127,7 +127,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
     /**
      * @notice Fuzz test that max fee results in all yield going to fees.
      * @param depositMultiplier The deposit amount multiplier.
-     * @param yieldPercent The yield percentage (1-5, limited by circuit breaker).
+     * @param yieldPercent The yield percentage (1%, limited by circuit breaker).
      */
     function testFuzz_yieldAccrual_maxFee(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
@@ -155,7 +155,7 @@ contract YieldAccrualFuzzTest is BaseAlphix4626WrapperSky {
     /**
      * @notice Fuzz test yield accrual triggered by deposit.
      * @param initialDeposit Initial deposit amount.
-     * @param yieldPercent Yield percentage (1-5, limited by circuit breaker).
+     * @param yieldPercent Yield percentage (1%, limited by circuit breaker).
      * @param secondDeposit Second deposit amount.
      */
     function testFuzz_yieldAccrual_triggeredByDeposit(

@@ -36,7 +36,7 @@ contract GettersTest is BaseAlphix4626WrapperSky {
     function test_getClaimableFees_afterYield_returnsCorrectAmount() public {
         _depositAsHook(1000e18, alphixHook);
 
-        // Simulate 10% yield
+        // Simulate 1% yield (circuit breaker limit)
         _simulateYieldPercent(1);
 
         uint256 fees = wrapper.getClaimableFees();

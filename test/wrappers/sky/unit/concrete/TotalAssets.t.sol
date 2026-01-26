@@ -41,7 +41,7 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
 
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
-        // Simulate 10% yield via rate increase
+        // Simulate 1% yield via rate increase (circuit breaker limit)
         _simulateYieldPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
@@ -71,7 +71,7 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
 
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
-        // Simulate 10% yield
+        // Simulate 1% yield (circuit breaker limit)
         _simulateYieldPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
@@ -97,7 +97,7 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
 
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
-        // Simulate 10% yield
+        // Simulate 1% yield (circuit breaker limit)
         _simulateYieldPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
@@ -163,7 +163,7 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
 
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
-        // Increase rate by 20%
+        // Increase rate by 1% (circuit breaker limit)
         _simulateYieldPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
@@ -187,7 +187,7 @@ contract TotalAssetsTest is BaseAlphix4626WrapperSky {
 
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
-        // Decrease rate by 10% (slash)
+        // Decrease rate by 1% (slash)
         _simulateSlashPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
