@@ -325,11 +325,9 @@ contract AlphixETH is Alphix {
             poolManager.take(currency, address(this), amount);
 
             YieldSourceState storage state = _yieldSourceState[currency];
-            if (state.yieldSource != address(0)) {
-                uint256 sharesReceived =
-                    IAlphix4626WrapperWeth(state.yieldSource).depositETH{value: amount}(address(this));
-                state.sharesOwned += sharesReceived;
-            }
+            if (state.yieldSource == address(0)) revert YieldSourceNotConfigured(currency);
+            uint256 sharesReceived = IAlphix4626WrapperWeth(state.yieldSource).depositETH{value: amount}(address(this));
+            state.sharesOwned += sharesReceived;
         } else if (currencyDelta < 0) {
             // Hook owes ETH - withdraw from yield source and settle
             // Safe: currencyDelta < 0
@@ -337,13 +335,12 @@ contract AlphixETH is Alphix {
             uint256 amount = uint256(-currencyDelta);
 
             YieldSourceState storage state = _yieldSourceState[currency];
-            if (state.yieldSource != address(0)) {
-                uint256 sharesRedeemed =
-                    IAlphix4626WrapperWeth(state.yieldSource).withdrawETH(amount, address(this), address(this));
-                // Safe: subtraction only executes when sharesOwned > sharesRedeemed (explicit guard)
-                unchecked {
-                    state.sharesOwned = state.sharesOwned > sharesRedeemed ? state.sharesOwned - sharesRedeemed : 0;
-                }
+            if (state.yieldSource == address(0)) revert YieldSourceNotConfigured(currency);
+            uint256 sharesRedeemed =
+                IAlphix4626WrapperWeth(state.yieldSource).withdrawETH(amount, address(this), address(this));
+            // Safe: subtraction only executes when sharesOwned > sharesRedeemed (explicit guard)
+            unchecked {
+                state.sharesOwned = state.sharesOwned > sharesRedeemed ? state.sharesOwned - sharesRedeemed : 0;
             }
 
             poolManager.settle{value: amount}();

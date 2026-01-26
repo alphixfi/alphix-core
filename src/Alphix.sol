@@ -230,7 +230,13 @@ contract Alphix is
 
     /* ADMIN FUNCTIONS */
 
-    /// @inheritdoc IAlphix
+    /**
+     * @inheritdoc IAlphix
+     * @dev NOTE: For JIT liquidity operations to execute during swaps, BOTH yield sources must be
+     *      configured via setYieldSource() BEFORE or shortly AFTER calling initializePool().
+     *      If yield sources are not configured, JIT operations will simply not execute (swaps still work).
+     *      This is safe because _computeBeforeSwapJit() checks yield source configuration.
+     */
     function initializePool(
         PoolKey calldata key,
         uint24 _initialFee,
@@ -298,6 +304,11 @@ contract Alphix is
         whenNotPaused
     {
         _setPoolParams(params);
+
+        // Clamp _targetRatio to the new maxCurrentRatio to maintain state consistency
+        if (_targetRatio > params.maxCurrentRatio) {
+            _targetRatio = params.maxCurrentRatio;
+        }
     }
 
     /// @inheritdoc IAlphix
@@ -471,6 +482,9 @@ contract Alphix is
 
         // Calculate amounts with rounding down (protocol-favorable for withdrawals)
         (uint256 amount0, uint256 amount1) = _convertSharesToAmountsForWithdrawal(shares);
+
+        // Prevent burning shares when both amounts round to zero
+        if (amount0 == 0 && amount1 == 0) revert ZeroAmounts();
 
         // Burn shares first
         _burn(msg.sender, shares);

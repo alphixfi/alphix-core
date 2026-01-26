@@ -836,6 +836,60 @@ contract AlphixUnitTest is BaseAlphixTest {
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
+                    REMOVE REHYPOTHECATED LIQUIDITY - ZERO AMOUNTS TESTS
+    ═══════════════════════════════════════════════════════════════════════════ */
+
+    function test_removeReHypothecatedLiquidity_revertsWhenBothAmountsRoundToZero() public {
+        _setupYieldSources();
+
+        // Add a large amount of liquidity first
+        uint256 largeDeposit = 1000e18;
+        MockERC20(Currency.unwrap(currency0)).mint(user1, largeDeposit);
+        MockERC20(Currency.unwrap(currency1)).mint(user1, largeDeposit);
+
+        vm.startPrank(user1);
+        MockERC20(Currency.unwrap(currency0)).approve(address(hook), largeDeposit);
+        MockERC20(Currency.unwrap(currency1)).approve(address(hook), largeDeposit);
+        hook.addReHypothecatedLiquidity(100e18); // Get 100e18 shares
+        vm.stopPrank();
+
+        // Now try to withdraw with just 1 share - both amounts will round to 0
+        // With 100e18 shares and ~100e18 total assets, 1 share gives ~1e-18 of each asset = 0
+        // This should revert with ZeroAmounts
+        vm.prank(user1);
+        vm.expectRevert(IReHypothecation.ZeroAmounts.selector);
+        hook.removeReHypothecatedLiquidity(1);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+                    SET POOL PARAMS - TARGET RATIO CLAMPING TESTS
+    ═══════════════════════════════════════════════════════════════════════════ */
+
+    function test_setPoolParams_clampsTargetRatioToNewMaxCurrentRatio() public {
+        // First set a high target ratio by poking with a high ratio
+        // Warp past cooldown
+        vm.warp(block.timestamp + defaultPoolParams.minPeriod + 1);
+
+        // Poke with the max allowed ratio to push target ratio high
+        vm.prank(owner);
+        hook.poke(defaultPoolParams.maxCurrentRatio);
+
+        // Now update pool params with a LOWER maxCurrentRatio
+        DynamicFeeLib.PoolParams memory newParams = defaultPoolParams;
+        newParams.maxCurrentRatio = 1e18; // Lower than what target ratio might be
+
+        vm.prank(owner);
+        hook.setPoolParams(newParams);
+
+        // Verify target ratio was clamped: subsequent poke should work with the new range
+        vm.warp(block.timestamp + newParams.minPeriod + 1);
+
+        // This should NOT revert - if target ratio wasn't clamped, fee calculation might fail
+        vm.prank(owner);
+        hook.poke(newParams.maxCurrentRatio);
+    }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
                                 HELPER FUNCTIONS
     ═══════════════════════════════════════════════════════════════════════════ */
 
