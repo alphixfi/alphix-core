@@ -44,8 +44,8 @@ contract RedeemFlowTest is BaseAlphix4626WrapperSky {
         // Deposit as hook
         _depositAsHook(depositAmount, alphixHook);
 
-        // Simulate 5% yield (respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate 1% yield (respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Redeem all shares
         uint256 maxRedeem = wrapper.maxRedeem(alphixHook);
@@ -125,8 +125,8 @@ contract RedeemFlowTest is BaseAlphix4626WrapperSky {
         uint256 depositAmount = 100e18;
         _depositAsHook(depositAmount, alphixHook);
 
-        // Simulate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Collect fees
         vm.prank(owner);
@@ -148,8 +148,8 @@ contract RedeemFlowTest is BaseAlphix4626WrapperSky {
         uint256 depositAmount = 100e18;
         uint256 shares = _depositAsHook(depositAmount, alphixHook);
 
-        // Simulate 5% rate decrease
-        _simulateSlashPercent(5);
+        // Simulate 1% rate decrease
+        _simulateSlashPercent(1);
 
         // previewRedeem should show less than deposited
         uint256 assetsExpected = wrapper.previewRedeem(shares);
@@ -178,8 +178,8 @@ contract RedeemFlowTest is BaseAlphix4626WrapperSky {
         // Deposit more
         _depositAsHook(30e18, alphixHook);
 
-        // Simulate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Redeem some
         uint256 currentShares = wrapper.balanceOf(alphixHook);
@@ -214,8 +214,8 @@ contract RedeemFlowTest is BaseAlphix4626WrapperSky {
         uint256 hook2Shares = wrapper.deposit(100e18, hook2);
         vm.stopPrank();
 
-        // Simulate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Hook1 redeems half
         vm.prank(alphixHook);

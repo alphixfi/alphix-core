@@ -207,7 +207,7 @@ contract RescueTokensTest is BaseAlphix4626WrapperSky {
     function test_rescueTokens_doesNotAffectWrapperState() public {
         // Setup some deposits first
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 totalAssetsBefore = wrapper.totalAssets();
         uint256 feesBefore = wrapper.getClaimableFees();
@@ -285,13 +285,12 @@ contract RescueTokensTest is BaseAlphix4626WrapperSky {
         _simulateStuckTokens(100e18);
 
         // Use vm.store to set _yieldTreasury to address(0)
-        // Storage slot 8 contains: _paused (1 byte), _fee (3 bytes), _yieldTreasury (20 bytes)
-        // We need to preserve _paused and _fee while zeroing _yieldTreasury
-        // Read current slot value first
-        bytes32 currentSlot8 = vm.load(address(wrapper), bytes32(uint256(8)));
-        // Mask to keep only the first 4 bytes (_paused + _fee) and zero out _yieldTreasury
+        // Storage layout: _yieldTreasury is at slot 8, offset 4 (packed with _paused and _fee)
+        // We need to clear only the _yieldTreasury bytes while preserving _paused and _fee
+        bytes32 slot8 = vm.load(address(wrapper), bytes32(uint256(8)));
+        // Clear bytes 4-23 (address is 20 bytes) while keeping bytes 0-3 (_paused + _fee)
         bytes32 mask = bytes32(uint256(0xFFFFFFFF)); // Keep first 4 bytes
-        bytes32 newSlot8 = currentSlot8 & mask; // Zero out _yieldTreasury (bytes 4-23)
+        bytes32 newSlot8 = slot8 & mask; // Zero out the address part
         vm.store(address(wrapper), bytes32(uint256(8)), newSlot8);
 
         // Verify treasury is now zero

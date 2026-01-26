@@ -145,7 +145,7 @@ contract DepositFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_deposit_atVaryingRates(uint256 amountMultiplier, uint256 rateMultiplier) public {
         amountMultiplier = bound(amountMultiplier, 1, 100_000_000);
-        rateMultiplier = bound(rateMultiplier, 100, 105); // 1x to 1.05x rate (circuit breaker limits to 5%)
+        rateMultiplier = bound(rateMultiplier, 100, 101); // 1x to 1.01x rate (circuit breaker limits to 1%)
         uint256 amount = amountMultiplier * 1e18;
 
         // Set a different rate
@@ -171,7 +171,7 @@ contract DepositFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_deposit_afterYield(uint256 initialDeposit, uint256 yieldPercent, uint256 secondDeposit) public {
         initialDeposit = bound(initialDeposit, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         secondDeposit = bound(secondDeposit, 1, 100_000_000);
 
         uint256 amount1 = initialDeposit * 1e18;

@@ -41,7 +41,7 @@ contract RedeemFlowFuzzTest is BaseAlphix4626WrapperSky {
         public
     {
         depositMultiplier = bound(depositMultiplier, 1, 10_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         redeemPercent = bound(redeemPercent, 1, 100);
 
         uint256 depositAmount = depositMultiplier * 1e18;
@@ -95,7 +95,7 @@ contract RedeemFlowFuzzTest is BaseAlphix4626WrapperSky {
         uint256 redeemPercent
     ) public {
         depositMultiplier = bound(depositMultiplier, 1, 10_000_000);
-        slashPercent = bound(slashPercent, 1, 5); // Circuit breaker limits to 5%
+        slashPercent = bound(slashPercent, 1, 1); // Circuit breaker limits to 1%
         redeemPercent = bound(redeemPercent, 1, 100);
 
         uint256 depositAmount = depositMultiplier * 1e18;

@@ -99,7 +99,7 @@ contract WithdrawTest is BaseAlphix4626WrapperSky {
      */
     function test_withdraw_afterYield_receivesCorrectAssets() public {
         // Simulate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         uint256 assets = 100e18;
         uint256 usdsBalanceBefore = usds.balanceOf(alphixHook);

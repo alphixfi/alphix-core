@@ -14,7 +14,7 @@ contract CollectFeesFlowFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_collectFeesFlow_varyingYield(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 10_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
 
         uint256 depositAmount = depositMultiplier * 1e18;
         _depositAsHook(depositAmount, alphixHook);
@@ -48,7 +48,7 @@ contract CollectFeesFlowFuzzTest is BaseAlphix4626WrapperSky {
         uint256 totalFeesCollected;
 
         for (uint256 i = 0; i < yieldPercents.length; i++) {
-            uint256 yieldPct = bound(yieldPercents[i], 1, 5); // Circuit breaker limits to 5%
+            uint256 yieldPct = bound(yieldPercents[i], 1, 1); // Circuit breaker limits to 1%
             _simulateYieldPercent(yieldPct);
 
             uint256 fees = wrapper.getClaimableFees();
@@ -69,7 +69,7 @@ contract CollectFeesFlowFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_collectFeesFlow_maintainsAccounting(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 10_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
 
         uint256 depositAmount = depositMultiplier * 1e18;
         _depositAsHook(depositAmount, alphixHook);
@@ -104,7 +104,7 @@ contract CollectFeesFlowFuzzTest is BaseAlphix4626WrapperSky {
     ) public {
         deposit1Multiplier = bound(deposit1Multiplier, 1, 1_000_000);
         deposit2Multiplier = bound(deposit2Multiplier, 1, 1_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
 
         // Multiple users deposit
         _depositAsHook(deposit1Multiplier * 1e18, alphixHook);
@@ -144,7 +144,7 @@ contract CollectFeesFlowFuzzTest is BaseAlphix4626WrapperSky {
     ) public {
         depositMultiplier = bound(depositMultiplier, 1, 1_000_000);
         withdrawPercent = bound(withdrawPercent, 1, 50);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
 
         uint256 depositAmount = depositMultiplier * 1e18;
         _depositAsHook(depositAmount, alphixHook);

@@ -8,9 +8,9 @@ import {IAlphix4626WrapperSky} from "../../../../../src/wrappers/sky/interfaces/
  * @title CircuitBreakerTest
  * @author Alphix
  * @notice Unit tests for the rate circuit breaker mechanism.
- * @dev Tests the 5% bidirectional rate change limit that reverts on breach.
+ * @dev Tests the 1% bidirectional rate change limit that reverts on breach.
  *      The circuit breaker protects against oracle manipulation by blocking
- *      any transaction that would process a rate change exceeding 5%.
+ *      any transaction that would process a rate change exceeding 1%.
  */
 contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     /// @notice Event emitted when circuit breaker triggers
@@ -19,14 +19,16 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     /* POSITIVE DIRECTION TESTS */
 
     /**
-     * @notice Tests that small positive rate changes (4%) are allowed.
+     * @notice Tests that small positive rate changes (below 1%) are allowed.
      */
     function test_circuitBreaker_allowsSmallPositiveChange() public {
         // First deposit to establish state
         _depositAsHook(10_000e18, alphixHook);
 
-        // 4% yield should pass
-        _simulateYieldPercent(4);
+        // Use setRate to simulate a small change (0.5%)
+        uint256 currentRate = _getCurrentRate();
+        uint256 newRate = currentRate * 1005 / 1000; // 0.5% increase
+        _setRate(newRate);
 
         // Trigger accrual via deposit (should succeed)
         _depositAsHook(100e18, alphixHook);
@@ -35,13 +37,13 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     }
 
     /**
-     * @notice Tests that exactly 5% positive rate change is allowed (threshold is <=).
+     * @notice Tests that exactly 1% positive rate change is allowed (threshold is <=).
      */
     function test_circuitBreaker_exactThreshold_positive_passes() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // Exactly 5% yield should pass
-        _simulateYieldPercent(5);
+        // Exactly 1% yield should pass
+        _simulateYieldPercent(1);
 
         // Trigger accrual via deposit
         _depositAsHook(100e18, alphixHook);
@@ -50,13 +52,13 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     }
 
     /**
-     * @notice Tests that large positive rate changes (6%) trigger the circuit breaker and revert.
+     * @notice Tests that large positive rate changes (2%) trigger the circuit breaker and revert.
      */
     function test_circuitBreaker_triggersOnLargePositiveChange() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // 6% yield should trigger circuit breaker
-        _simulateYieldPercent(6);
+        // 2% yield should trigger circuit breaker
+        _simulateYieldPercent(2);
 
         // Attempt to trigger accrual via deposit - should revert
         usds.mint(alphixHook, 100e18);
@@ -68,13 +70,13 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     }
 
     /**
-     * @notice Tests that 10% positive rate change reverts.
+     * @notice Tests that 5% positive rate change reverts (exceeds 1% threshold).
      */
     function test_circuitBreaker_largePositiveChange_reverts() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // 10% yield should trigger circuit breaker
-        _simulateYieldPercent(10);
+        // 5% yield should trigger circuit breaker (exceeds 1% threshold)
+        _simulateYieldPercent(5);
 
         // Attempt operation that triggers accrual - should revert
         usds.mint(alphixHook, 100e18);
@@ -93,8 +95,8 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
 
         uint256 lastRate = _getCurrentRate();
 
-        // 10% yield
-        _simulateYieldPercent(10);
+        // 5% yield (exceeds 1% threshold)
+        _simulateYieldPercent(5);
         uint256 currentRate = _getCurrentRate();
         uint256 expectedChangeBps = ((currentRate - lastRate) * 10_000) / lastRate;
 
@@ -114,13 +116,15 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     /* NEGATIVE DIRECTION TESTS */
 
     /**
-     * @notice Tests that small negative rate changes (4%) are allowed.
+     * @notice Tests that small negative rate changes (below 1%) are allowed.
      */
     function test_circuitBreaker_allowsSmallNegativeChange() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // 4% slash should pass
-        _simulateSlashPercent(4);
+        // Use setRate to simulate a small change (0.5%)
+        uint256 currentRate = _getCurrentRate();
+        uint256 newRate = currentRate * 995 / 1000; // 0.5% decrease
+        _setRate(newRate);
 
         // Trigger accrual via deposit
         _depositAsHook(100e18, alphixHook);
@@ -129,13 +133,13 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     }
 
     /**
-     * @notice Tests that exactly 5% negative rate change is allowed.
+     * @notice Tests that exactly 1% negative rate change is allowed.
      */
     function test_circuitBreaker_exactThreshold_negative_passes() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // Exactly 5% slash should pass
-        _simulateSlashPercent(5);
+        // Exactly 1% slash should pass
+        _simulateSlashPercent(1);
 
         // Trigger accrual via deposit
         _depositAsHook(100e18, alphixHook);
@@ -144,13 +148,13 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     }
 
     /**
-     * @notice Tests that large negative rate changes (6%) trigger the circuit breaker.
+     * @notice Tests that large negative rate changes (2%) trigger the circuit breaker.
      */
     function test_circuitBreaker_triggersOnLargeNegativeChange() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // 6% slash should trigger circuit breaker
-        _simulateSlashPercent(6);
+        // 2% slash should trigger circuit breaker
+        _simulateSlashPercent(2);
 
         // Attempt to trigger accrual via deposit - should revert
         usds.mint(alphixHook, 100e18);
@@ -162,13 +166,13 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     }
 
     /**
-     * @notice Tests that 10% negative rate change reverts.
+     * @notice Tests that 5% negative rate change reverts (exceeds 1% threshold).
      */
     function test_circuitBreaker_largeNegativeChange_reverts() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // 10% slash should trigger circuit breaker
-        _simulateSlashPercent(10);
+        // 5% slash should trigger circuit breaker (exceeds 1% threshold)
+        _simulateSlashPercent(5);
 
         // Attempt operation that triggers accrual - should revert
         usds.mint(alphixHook, 100e18);
@@ -187,8 +191,8 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
 
         uint256 lastRate = _getCurrentRate();
 
-        // 10% slash
-        _simulateSlashPercent(10);
+        // 5% slash (exceeds 1% threshold)
+        _simulateSlashPercent(5);
         uint256 currentRate = _getCurrentRate();
         uint256 expectedChangeBps = ((lastRate - currentRate) * 10_000) / lastRate;
 
@@ -223,9 +227,9 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     function test_circuitBreaker_loopedSmallChanges_allowed() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // Multiple 4% changes should all pass when accrual triggers between each
+        // Multiple 1% changes should all pass when accrual triggers between each
         for (uint256 i = 0; i < 5; i++) {
-            _simulateYieldPercent(4);
+            _simulateYieldPercent(1);
 
             // Trigger accrual to update lastRate
             vm.prank(owner);
@@ -236,7 +240,7 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     }
 
     /**
-     * @notice Tests that cumulative small changes that compound to >5% still work.
+     * @notice Tests that cumulative small changes that compound to >1% still work.
      * @dev Because each change is checked independently after accrual updates lastRate.
      */
     function test_circuitBreaker_cumulativeChanges_checkPerAccrual() public {
@@ -244,17 +248,17 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
 
         uint256 initialRate = _getCurrentRate();
 
-        // Do 5 cycles of 4% yield with accrual between each
+        // Do 5 cycles of 1% yield with accrual between each
         for (uint256 i = 0; i < 5; i++) {
-            _simulateYieldPercent(4);
+            _simulateYieldPercent(1);
             vm.prank(owner);
             wrapper.setFee(DEFAULT_FEE);
         }
 
         uint256 finalRate = _getCurrentRate();
 
-        // Total rate increase is roughly (1.04)^5 - 1 ≈ 21.7%
-        assertGt(finalRate, initialRate * 120 / 100, "Rate should have increased >20%");
+        // Total rate increase is roughly (1.01)^5 - 1 ≈ 5.1%
+        assertGt(finalRate, initialRate * 105 / 100, "Rate should have increased >5%");
 
         _assertSolvent();
     }
@@ -265,8 +269,8 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     function test_circuitBreaker_operationsWorkAfterRateNormalizes() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // Trigger circuit breaker with 10% change - reverts
-        _simulateYieldPercent(10);
+        // Trigger circuit breaker with 5% change - reverts (exceeds 1% threshold)
+        _simulateYieldPercent(5);
 
         usds.mint(alphixHook, 100e18);
         vm.startPrank(alphixHook);
@@ -300,8 +304,8 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     function test_circuitBreaker_triggersOnWithdraw() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // 10% yield should trigger circuit breaker
-        _simulateYieldPercent(10);
+        // 5% yield should trigger circuit breaker (exceeds 1%)
+        _simulateYieldPercent(5);
 
         // Attempt withdraw - should revert
         vm.prank(alphixHook);
@@ -315,8 +319,8 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     function test_circuitBreaker_triggersOnRedeem() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // 10% slash should trigger circuit breaker
-        _simulateSlashPercent(10);
+        // 5% slash should trigger circuit breaker (exceeds 1%)
+        _simulateSlashPercent(5);
 
         // Attempt redeem - should revert
         uint256 shares = wrapper.balanceOf(alphixHook);
@@ -331,13 +335,13 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     function test_circuitBreaker_triggersOnCollectFees() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // Generate some fees first
-        _simulateYieldPercent(5);
+        // Generate some fees first (1% is within threshold)
+        _simulateYieldPercent(1);
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE); // Trigger accrual to generate fees
 
-        // Now simulate excessive rate change
-        _simulateYieldPercent(10);
+        // Now simulate excessive rate change (5% exceeds 1% threshold)
+        _simulateYieldPercent(5);
 
         // Attempt fee collection - should revert
         vm.prank(owner);
@@ -351,8 +355,8 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     function test_circuitBreaker_triggersOnSetFee() public {
         _depositAsHook(10_000e18, alphixHook);
 
-        // 10% yield should trigger circuit breaker
-        _simulateYieldPercent(10);
+        // 5% yield should trigger circuit breaker (exceeds 1%)
+        _simulateYieldPercent(5);
 
         // Attempt to change fee (triggers accrual) - should revert
         vm.prank(owner);
@@ -366,7 +370,7 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
      * @notice Fuzz test that changes within threshold always pass.
      */
     function testFuzz_circuitBreaker_withinThreshold_passes(uint256 changePercent) public {
-        changePercent = bound(changePercent, 1, 5);
+        changePercent = bound(changePercent, 1, 1); // Only 1% passes now
 
         _depositAsHook(10_000e18, alphixHook);
 
@@ -380,7 +384,7 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
      * @notice Fuzz test that changes exceeding threshold always revert.
      */
     function testFuzz_circuitBreaker_exceedsThreshold_reverts(uint256 changePercent) public {
-        changePercent = bound(changePercent, 6, 50);
+        changePercent = bound(changePercent, 2, 50); // >1% should revert
 
         _depositAsHook(10_000e18, alphixHook);
 
@@ -399,7 +403,7 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
      * @notice Fuzz test negative changes within threshold pass.
      */
     function testFuzz_circuitBreaker_negativeWithinThreshold_passes(uint256 slashPercent) public {
-        slashPercent = bound(slashPercent, 1, 5);
+        slashPercent = bound(slashPercent, 1, 1); // Only 1% passes now
 
         _depositAsHook(10_000e18, alphixHook);
 
@@ -413,7 +417,7 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
      * @notice Fuzz test negative changes exceeding threshold revert.
      */
     function testFuzz_circuitBreaker_negativeExceedsThreshold_reverts(uint256 slashPercent) public {
-        slashPercent = bound(slashPercent, 6, 50);
+        slashPercent = bound(slashPercent, 2, 50); // >1% should revert
 
         _depositAsHook(10_000e18, alphixHook);
 
@@ -429,18 +433,18 @@ contract CircuitBreakerTest is BaseAlphix4626WrapperSky {
     }
 
     /**
-     * @notice Fuzz test boundary: exactly 5% always passes.
+     * @notice Fuzz test boundary: exactly 1% always passes.
      */
-    function testFuzz_circuitBreaker_exactlyFivePercent_passes(bool isPositive) public {
+    function testFuzz_circuitBreaker_exactlyOnePercent_passes(bool isPositive) public {
         _depositAsHook(10_000e18, alphixHook);
 
         if (isPositive) {
-            _simulateYieldPercent(5);
+            _simulateYieldPercent(1);
         } else {
-            _simulateSlashPercent(5);
+            _simulateSlashPercent(1);
         }
 
-        // Should succeed at exactly 5%
+        // Should succeed at exactly 1%
         _depositAsHook(100e18, alphixHook);
     }
 }

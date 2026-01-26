@@ -79,10 +79,10 @@ contract Alphix4626WrapperSky is ERC4626, IAlphix4626WrapperSky, Ownable2Step, R
     uint256 private constant MAX_RATE = 1e30;
 
     /**
-     * @notice Maximum allowed rate change per transaction (5% = 500 basis points).
+     * @notice Maximum allowed rate change per transaction (1% = 100 basis points).
      * @dev Applies to BOTH increases and decreases to prevent manipulation.
      */
-    uint256 private constant MAX_RATE_CHANGE_BPS = 500;
+    uint256 private constant MAX_RATE_CHANGE_BPS = 100;
 
     /// IMMUTABLES ///
 
@@ -469,6 +469,38 @@ contract Alphix4626WrapperSky is ERC4626, IAlphix4626WrapperSky, Ownable2Step, R
         _accumulatedFees = 0;
         SUSDS.safeTransfer(_yieldTreasury, fees);
         emit FeesCollected(fees);
+    }
+
+    /**
+     * @inheritdoc IAlphix4626WrapperSky
+     * @dev Sets _lastRate directly to the current rate and accrues yield.
+     *      Bypasses the circuit breaker check to unblock operations.
+     */
+    function syncRate() external override onlyOwner {
+        uint256 currentRate = RATE_PROVIDER.getConversionRate();
+        _validateRate(currentRate);
+        uint256 lastRate = _lastRate;
+
+        // Revert if no sync needed
+        if (lastRate == 0 || currentRate == lastRate) revert NoSyncNeeded();
+
+        // Accrue yield without circuit breaker check
+        if (currentRate > lastRate) {
+            // Rate increased = yield earned
+            uint256 totalSusds = SUSDS.balanceOf(address(this));
+            uint256 netSusds = totalSusds > _accumulatedFees ? totalSusds - _accumulatedFees : 0;
+            if (netSusds > 0) {
+                uint256 yieldUsds = netSusds.mulDiv(currentRate - lastRate, RATE_PRECISION);
+                uint256 feeUsds = yieldUsds.mulDiv(_fee, MAX_FEE);
+                uint256 feeSusds = feeUsds.mulDiv(RATE_PRECISION, currentRate);
+                _accumulatedFees += SafeCast.toUint128(feeSusds);
+                emit YieldAccrued(yieldUsds, feeSusds, currentRate);
+            }
+        }
+        // For negative yield (slash), no fees to accrue
+
+        _lastRate = currentRate;
+        emit RateSynced(lastRate, currentRate, currentRate);
     }
 
     /// VIEW FUNCTIONS ///

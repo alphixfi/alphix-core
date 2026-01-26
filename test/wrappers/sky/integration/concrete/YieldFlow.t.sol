@@ -21,13 +21,13 @@ contract YieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 totalAfterDeposit = wrapper.totalAssets();
         assertApproxEqAbs(totalAfterDeposit, DEFAULT_SEED_LIQUIDITY + deposit1, 2, "Total should be seed + deposit");
 
-        // Simulate 5% yield (rate increase, respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate 1% yield (rate increase, respects circuit breaker)
+        _simulateYieldPercent(1);
 
         uint256 susdsBalance = susds.balanceOf(address(wrapper));
-        uint256 expectedYield = (DEFAULT_SEED_LIQUIDITY + deposit1) * 5 / 100;
+        uint256 expectedYield = (DEFAULT_SEED_LIQUIDITY + deposit1) * 1 / 100;
 
-        // Yield generated: sUSDS is now worth 5% more in USDS terms
+        // Yield generated: sUSDS is now worth 1% more in USDS terms
         uint256 valueInUsds = _susdsToUsds(susdsBalance);
         assertGt(valueInUsds, totalAfterDeposit, "sUSDS value should increase");
 
@@ -66,8 +66,8 @@ contract YieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 ownerShares = wrapper.deposit(ownerDeposit, owner);
         vm.stopPrank();
 
-        // Simulate 5% yield (respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate 1% yield (respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Check each depositor's share of assets
         uint256 hookAssets = wrapper.convertToAssets(hookShares);
@@ -93,11 +93,11 @@ contract YieldFlowTest is BaseAlphix4626WrapperSky {
 
         uint256 totalBefore = wrapper.totalAssets();
 
-        // Simulate 5% yield (respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate 1% yield (respects circuit breaker)
+        _simulateYieldPercent(1);
 
         uint256 totalAfter = wrapper.totalAssets();
-        uint256 expectedYield = (DEFAULT_SEED_LIQUIDITY + deposit) * 5 / 100;
+        uint256 expectedYield = (DEFAULT_SEED_LIQUIDITY + deposit) * 1 / 100;
 
         // All yield should go to depositors
         _assertApproxEq(totalAfter - totalBefore, expectedYield, 2, "All yield should go to depositors");
@@ -119,8 +119,8 @@ contract YieldFlowTest is BaseAlphix4626WrapperSky {
 
         uint256 totalBefore = wrapper.totalAssets();
 
-        // Simulate 5% yield (respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate 1% yield (respects circuit breaker)
+        _simulateYieldPercent(1);
 
         uint256 totalAfter = wrapper.totalAssets();
 
@@ -128,7 +128,7 @@ contract YieldFlowTest is BaseAlphix4626WrapperSky {
         _assertApproxEq(totalAfter, totalBefore, 2, "No yield with max fee");
 
         // All yield should be fees
-        uint256 expectedYield = (DEFAULT_SEED_LIQUIDITY + deposit) * 5 / 100;
+        uint256 expectedYield = (DEFAULT_SEED_LIQUIDITY + deposit) * 1 / 100;
         _assertApproxEq(_susdsToUsds(wrapper.getClaimableFees()), expectedYield, 2, "All yield should be fees");
 
         _assertSolvent();
@@ -145,7 +145,7 @@ contract YieldFlowTest is BaseAlphix4626WrapperSky {
 
         // Multiple yield cycles
         for (uint256 i = 0; i < 5; i++) {
-            _simulateYieldPercent(5);
+            _simulateYieldPercent(1);
 
             // Trigger accrual with small deposit
             _depositAsHook(100e18, alphixHook);
@@ -168,8 +168,8 @@ contract YieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 initialRate = wrapper.getLastRate();
         assertEq(initialRate, INITIAL_RATE, "Initial rate should be 1:1");
 
-        // Simulate 5% yield (respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Simulate 1% yield (respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Rate should update after accrual
         vm.prank(owner);
@@ -177,7 +177,7 @@ contract YieldFlowTest is BaseAlphix4626WrapperSky {
 
         uint256 newRate = wrapper.getLastRate();
         assertGt(newRate, initialRate, "Rate should increase after yield");
-        assertEq(newRate, INITIAL_RATE * 105 / 100, "Rate should be 1.05x");
+        assertEq(newRate, INITIAL_RATE * 101 / 100, "Rate should be 1.01x");
 
         _assertSolvent();
     }
@@ -217,20 +217,20 @@ contract YieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 deposit1 = 5_000e18;
         _depositAsHook(deposit1, alphixHook);
 
-        // Partial yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Partial yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Second deposit (joins mid-yield-period)
         uint256 deposit2 = 5_000e18;
         uint256 shares2 = _depositAsHook(deposit2, alphixHook);
 
-        // More yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // More yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Second depositor should get less yield per share
         uint256 valueOfShares2 = wrapper.convertToAssets(shares2);
 
-        // Should be close to deposit2 + 5% yield (second period only)
+        // Should be close to deposit2 + 1% yield (second period only)
         // minus fees
         assertLt(valueOfShares2, deposit2 * 110 / 100, "Should have accumulated yield");
         assertGt(valueOfShares2, deposit2, "Should have some yield");

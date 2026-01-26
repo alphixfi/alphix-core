@@ -52,8 +52,8 @@ contract MultiHookFlowTest is BaseAlphix4626WrapperSky {
             wrapper.totalAssets(), DEFAULT_SEED_LIQUIDITY + 600e18, 2, "Total assets should be sum of deposits"
         );
 
-        // Generate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Generate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Each hook withdraws half
         uint256 hook1Max = wrapper.maxWithdraw(alphixHook);
@@ -84,16 +84,16 @@ contract MultiHookFlowTest is BaseAlphix4626WrapperSky {
         // Hook1 deposits first
         uint256 hook1Shares = _depositAsHook(100e18, alphixHook);
 
-        // 5% yield (respects circuit breaker)
-        _simulateYieldPercent(5);
+        // 1% yield (respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Hook2 deposits (should get fewer shares per USDS)
         usds.mint(hook2, 100e18);
         vm.prank(hook2);
         uint256 hook2Shares = wrapper.deposit(100e18, hook2);
 
-        // 5% more yield (respects circuit breaker)
-        _simulateYieldPercent(5);
+        // 1% more yield (respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Hook3 deposits (should get even fewer shares)
         usds.mint(hook3, 100e18);
@@ -127,8 +127,8 @@ contract MultiHookFlowTest is BaseAlphix4626WrapperSky {
         vm.prank(hook2);
         wrapper.deposit(100e18, hook2);
 
-        // Generate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Generate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         uint256 hook2SharesBefore = wrapper.balanceOf(hook2);
         assertGt(hook2SharesBefore, 0, "Hook2 should have shares");
@@ -188,8 +188,8 @@ contract MultiHookFlowTest is BaseAlphix4626WrapperSky {
         uint256 hook2Shares = wrapper.balanceOf(hook2);
         uint256 hook3Shares = wrapper.balanceOf(hook3);
 
-        // Generate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Generate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Get proportional values
         uint256 hook1Value = wrapper.convertToAssets(hook1Shares);
@@ -218,8 +218,8 @@ contract MultiHookFlowTest is BaseAlphix4626WrapperSky {
         vm.prank(hook3);
         wrapper.deposit(100e18, hook3);
 
-        // Generate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Generate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Hook1 withdraws
         vm.prank(alphixHook);
@@ -246,8 +246,8 @@ contract MultiHookFlowTest is BaseAlphix4626WrapperSky {
         // Initial deposit
         _depositAsHook(100e18, alphixHook);
 
-        // Generate yield (5% respects circuit breaker)
-        _simulateYieldPercent(5);
+        // Generate yield (1% respects circuit breaker)
+        _simulateYieldPercent(1);
 
         // Add new hook
         address newHook = makeAddr("newHook");

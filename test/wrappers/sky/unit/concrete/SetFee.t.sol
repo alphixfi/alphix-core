@@ -103,7 +103,7 @@ contract SetFeeTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate yield via rate increase
-        _simulateYieldPercent(5); // 10% yield
+        _simulateYieldPercent(1); // 1% yield (circuit breaker limit)
 
         // Setting fee should trigger yield accrual
         vm.expectEmit(false, false, false, false);

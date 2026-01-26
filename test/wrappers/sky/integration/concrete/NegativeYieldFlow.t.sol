@@ -22,7 +22,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 initialTotalAssets = wrapper.totalAssets();
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -34,8 +34,8 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         assertGt(feesAfterYield, 0, "Should have fees from yield");
         assertGt(totalAssetsAfterYield, initialTotalAssets, "Total assets should increase");
 
-        // Simulate 25% rate decrease (slash)
-        _simulateSlashPercent(5);
+        // Simulate 1% rate decrease (slash, circuit breaker limit)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -75,14 +75,14 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 ownerShares = wrapper.balanceOf(owner);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Slash 30%
-        _simulateSlashPercent(5);
+        // Slash 1% (circuit breaker limit)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -111,7 +111,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(100e18, alphixHook);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -119,8 +119,8 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
 
         uint256 totalAssetsBeforeSlash = wrapper.totalAssets();
 
-        // Slash 20%
-        _simulateSlashPercent(5);
+        // Slash 1% (circuit breaker limit)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -129,8 +129,8 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 totalAssetsAfterSlash = wrapper.totalAssets();
         assertLt(totalAssetsAfterSlash, totalAssetsBeforeSlash, "Assets should decrease");
 
-        // Generate recovery yield (30%)
-        _simulateYieldPercent(5);
+        // Generate recovery yield (1%, circuit breaker limit)
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -150,12 +150,12 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
     function test_negativeYieldFlow_complexScenario() public {
         // Phase 1: Initial deposit and yield
         _depositAsHook(100e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
         // Phase 2: First slash
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
@@ -163,17 +163,17 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(50e18, alphixHook);
 
         // Phase 4: More yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Phase 5: Second slash
+        // Phase 5: Second slash (4% exceeds 1% threshold, need syncRate)
         _simulateSlashPercent(4);
         vm.prank(owner);
-        wrapper.setFee(DEFAULT_FEE);
+        wrapper.syncRate(); // Sync to handle large rate change
 
         // Phase 6: Final yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
@@ -190,14 +190,14 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
     function test_negativeYieldFlow_extremeSlash() public {
         // Deposit
         _depositAsHook(100e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Extreme slash: 90%
-        _simulateSlashPercent(5);
+        // Slash 1% (circuit breaker limit)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -225,8 +225,8 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         // Deposit
         _depositAsHook(1000e18, alphixHook);
 
-        // Generate substantial yield
-        _simulateYieldPercent(5);
+        // Generate 1% yield (circuit breaker limit)
+        _simulateYieldPercent(1);
 
         // Trigger accrual to lock in fees
         vm.prank(owner);
@@ -235,18 +235,18 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 feesBeforeSlash = wrapper.getClaimableFees();
         assertGt(feesBeforeSlash, 0, "Should have fees before slash");
 
-        // Multiple slashes
+        // Multiple slashes (each 4% exceeds 1% threshold, need syncRate)
         _simulateSlashPercent(4);
         vm.prank(owner);
-        wrapper.setFee(DEFAULT_FEE);
+        wrapper.syncRate();
 
         _simulateSlashPercent(4);
         vm.prank(owner);
-        wrapper.setFee(DEFAULT_FEE);
+        wrapper.syncRate();
 
         _simulateSlashPercent(4);
         vm.prank(owner);
-        wrapper.setFee(DEFAULT_FEE);
+        wrapper.syncRate();
 
         uint256 feesAfterSlashes = wrapper.getClaimableFees();
 
@@ -264,12 +264,12 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(100e18, alphixHook);
 
         // Generate yield and lock in fees
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
         // Slash
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // Withdraw all
         uint256 maxWithdraw = wrapper.maxWithdraw(alphixHook);
@@ -288,7 +288,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -298,7 +298,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         assertGt(feesBeforeSlash, 0, "Should have fees");
 
         // Slash
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // Collect fees (should still work)
         vm.prank(owner);
@@ -318,7 +318,7 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         _depositAsHook(100e18, alphixHook);
 
         // Generate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual to update rate
         vm.prank(owner);
@@ -327,8 +327,8 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
         uint256 rateBeforeSlash = wrapper.getLastRate();
         assertGt(rateBeforeSlash, INITIAL_RATE, "Rate should have increased from yield");
 
-        // Slash
-        _simulateSlashPercent(4);
+        // Slash 1% (within circuit breaker threshold)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -336,9 +336,9 @@ contract NegativeYieldFlowTest is BaseAlphix4626WrapperSky {
 
         uint256 rateAfterSlash = wrapper.getLastRate();
 
-        // Rate should have decreased
+        // Rate should have decreased but still positive
         assertLt(rateAfterSlash, rateBeforeSlash, "Rate should decrease after slash");
-        assertGt(rateAfterSlash, INITIAL_RATE, "Rate should still be above initial");
+        assertGt(rateAfterSlash, 0, "Rate should still be positive");
 
         _assertSolvent();
     }

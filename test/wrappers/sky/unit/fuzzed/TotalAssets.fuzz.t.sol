@@ -34,7 +34,7 @@ contract TotalAssetsFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_totalAssets_equalsSusdsMinusFees(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         uint256 depositAmount = depositMultiplier * 1e18;
 
         _depositAsHook(depositAmount, alphixHook);
@@ -57,7 +57,7 @@ contract TotalAssetsFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_totalAssets_zeroFee(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         uint256 depositAmount = depositMultiplier * 1e18;
 
         vm.prank(owner);
@@ -108,7 +108,7 @@ contract TotalAssetsFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_totalAssets_afterYield(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         uint256 depositAmount = depositMultiplier * 1e18;
 
         _depositAsHook(depositAmount, alphixHook);
@@ -129,7 +129,7 @@ contract TotalAssetsFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_totalAssets_afterFeeCollection(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         uint256 depositAmount = depositMultiplier * 1e18;
 
         _depositAsHook(depositAmount, alphixHook);

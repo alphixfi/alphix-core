@@ -43,7 +43,7 @@ contract WithdrawFlowFuzzTest is BaseAlphix4626WrapperSky {
         public
     {
         depositMultiplier = bound(depositMultiplier, 1, 10_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         withdrawPercent = bound(withdrawPercent, 1, 100);
 
         uint256 depositAmount = depositMultiplier * 1e18;
@@ -95,7 +95,7 @@ contract WithdrawFlowFuzzTest is BaseAlphix4626WrapperSky {
         uint256 withdrawPercent
     ) public {
         depositMultiplier = bound(depositMultiplier, 1, 10_000_000);
-        slashPercent = bound(slashPercent, 1, 5); // Circuit breaker limits to 5%
+        slashPercent = bound(slashPercent, 1, 1); // Circuit breaker limits to 1%
         withdrawPercent = bound(withdrawPercent, 1, 100);
 
         uint256 depositAmount = depositMultiplier * 1e18;
@@ -167,7 +167,7 @@ contract WithdrawFlowFuzzTest is BaseAlphix4626WrapperSky {
         }
 
         // Yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Deposit more
         _depositAsHook(deposit2Multiplier * 1e18, alphixHook);

@@ -91,8 +91,8 @@ contract DepositTest is BaseAlphix4626WrapperSky {
         // Initial deposit
         _depositAsHook(100e18, alphixHook);
 
-        // Simulate 10% yield
-        _simulateYieldPercent(5);
+        // Simulate 1% yield (circuit breaker limit)
+        _simulateYieldPercent(1);
 
         // Second deposit - should get fewer shares per USDS
         uint256 amount = 100e18;

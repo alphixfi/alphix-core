@@ -58,7 +58,7 @@ contract SetFeeFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_setFee_accruesYieldFirst(uint256 depositMultiplier, uint256 yieldPercent, uint24 newFee) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         newFee = _boundFee(newFee);
         uint256 depositAmount = depositMultiplier * 1e18;
 
@@ -101,7 +101,7 @@ contract SetFeeFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_setFee_maintainsSolvency(uint256 depositMultiplier, uint256 yieldPercent, uint24 newFee) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         newFee = _boundFee(newFee);
         uint256 depositAmount = depositMultiplier * 1e18;
 

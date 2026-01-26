@@ -18,8 +18,8 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
     function test_accrueYield_emitsEvent() public {
         _depositAsHook(1000e18, alphixHook);
 
-        // Simulate 10% yield via rate increase
-        _simulateYieldPercent(5);
+        // Simulate 1% yield via rate increase (circuit breaker limit)
+        _simulateYieldPercent(1);
 
         // Trigger accrual via setFee - expect YieldAccrued to be emitted
         vm.recordLogs();
@@ -47,7 +47,7 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Record logs during deposit
         vm.recordLogs();
@@ -73,7 +73,7 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Record logs during setFee
         vm.recordLogs();
@@ -129,8 +129,8 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
 
         _depositAsHook(1000e18, alphixHook);
 
-        // Simulate 10% yield
-        _simulateYieldPercent(5);
+        // Simulate 1% yield (circuit breaker limit)
+        _simulateYieldPercent(1);
 
         // Trigger accrual - with 0% fee, feeAmount should be 0
         vm.recordLogs();
@@ -161,8 +161,8 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
 
         _depositAsHook(1000e18, alphixHook);
 
-        // Simulate 10% yield
-        _simulateYieldPercent(5);
+        // Simulate 1% yield (circuit breaker limit)
+        _simulateYieldPercent(1);
 
         // Trigger accrual - with 100% fee, all yield goes to fees
         vm.recordLogs();
@@ -191,7 +191,7 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // First yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         vm.recordLogs();
         _depositAsHook(500e18, alphixHook);
@@ -208,7 +208,7 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
         assertTrue(firstYieldEmitted, "First YieldAccrued event not emitted");
 
         // Second yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         vm.recordLogs();
         _depositAsHook(250e18, alphixHook);
@@ -231,7 +231,7 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         _depositAsHook(500e18, alphixHook);
@@ -248,7 +248,7 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
         uint256 lastRateBefore = wrapper.getLastRate();
 
         // Simulate yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);

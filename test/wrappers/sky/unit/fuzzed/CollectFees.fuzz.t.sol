@@ -17,7 +17,7 @@ contract CollectFeesFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_collectFees_varyingAmounts(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         uint256 depositAmount = depositMultiplier * 1e18;
 
         _depositAsHook(depositAmount, alphixHook);
@@ -41,7 +41,7 @@ contract CollectFeesFuzzTest is BaseAlphix4626WrapperSky {
         vm.assume(caller != owner && caller != address(0));
 
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5); // Circuit breaker limits to 5%
+        _simulateYieldPercent(1); // Circuit breaker limits to 1%
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, caller));
@@ -62,7 +62,7 @@ contract CollectFeesFuzzTest is BaseAlphix4626WrapperSky {
         uint256 totalCollected;
 
         for (uint256 i = 0; i < yields.length; i++) {
-            uint256 yieldPercent = bound(yields[i], 1, 5); // Circuit breaker limits to 5%
+            uint256 yieldPercent = bound(yields[i], 1, 1); // Circuit breaker limits to 1%
             _simulateYieldPercent(yieldPercent);
 
             uint256 claimableFees = wrapper.getClaimableFees();
@@ -84,7 +84,7 @@ contract CollectFeesFuzzTest is BaseAlphix4626WrapperSky {
      */
     function testFuzz_collectFees_maintainsSolvency(uint256 depositMultiplier, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         uint256 depositAmount = depositMultiplier * 1e18;
 
         _depositAsHook(depositAmount, alphixHook);
@@ -105,7 +105,7 @@ contract CollectFeesFuzzTest is BaseAlphix4626WrapperSky {
     function testFuzz_collectFees_varyingFeeRates(uint256 depositMultiplier, uint24 fee, uint256 yieldPercent) public {
         depositMultiplier = bound(depositMultiplier, 1, 100_000_000);
         fee = uint24(bound(fee, 1, MAX_FEE)); // At least 1 to generate some fees
-        yieldPercent = bound(yieldPercent, 1, 5); // Circuit breaker limits to 5%
+        yieldPercent = bound(yieldPercent, 1, 1); // Circuit breaker limits to 1%
         uint256 depositAmount = depositMultiplier * 1e18;
 
         vm.prank(owner);

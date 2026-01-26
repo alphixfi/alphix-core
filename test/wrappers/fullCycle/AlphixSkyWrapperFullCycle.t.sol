@@ -533,24 +533,37 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
     }
 
     /**
-     * @notice Simulates yield by increasing rate (direct, no accrual).
-     * @dev Only use for rate changes <= 5% to stay within circuit breaker.
+     * @notice Simulates yield by increasing rate, then syncs the rate.
+     * @dev Rate changes > 1% require syncRate() to bypass circuit breaker.
      */
     function _simulateSkyYield(uint256 yieldPercent) internal {
         rateProvider0.simulateYield(yieldPercent);
         rateProvider1.simulateYield(yieldPercent);
+
+        // Sync rate to bypass circuit breaker for rate changes > 1%
+        if (yieldPercent > 1) {
+            vm.startPrank(owner);
+            skyWrapper0.syncRate();
+            skyWrapper1.syncRate();
+            vm.stopPrank();
+        }
     }
 
     /**
-     * @notice Simulates yield by increasing rate, then triggers accrual.
+     * @notice Simulates yield by increasing rate, syncs, then triggers accrual.
      * @dev Use this to "lock in" a rate change before making another.
      */
     function _simulateSkyYieldWithAccrue(uint256 yieldPercent) internal {
         rateProvider0.simulateYield(yieldPercent);
         rateProvider1.simulateYield(yieldPercent);
 
-        // Trigger accrual by calling setFee (locks in the rate change)
+        // Sync rate to bypass circuit breaker for rate changes > 1%
         vm.startPrank(owner);
+        if (yieldPercent > 1) {
+            skyWrapper0.syncRate();
+            skyWrapper1.syncRate();
+        }
+        // Trigger accrual by calling setFee (locks in the rate change)
         skyWrapper0.setFee(WRAPPER_FEE);
         skyWrapper1.setFee(WRAPPER_FEE);
         vm.stopPrank();

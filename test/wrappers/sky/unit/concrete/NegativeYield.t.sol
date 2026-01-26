@@ -21,7 +21,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
     function test_negativeYield_doesNotReduceAccumulatedFees() public {
         // Setup: deposit and generate yield to accumulate fees
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5); // 20% yield
+        _simulateYieldPercent(1); // 1% yield (circuit breaker limit)
 
         // Trigger accrual to lock in fees
         vm.prank(owner);
@@ -30,8 +30,8 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         uint256 feesBefore = wrapper.getClaimableFees();
         assertGt(feesBefore, 0, "Should have accumulated fees");
 
-        // Simulate 10% rate decrease (slash)
-        _simulateSlashPercent(5);
+        // Simulate 1% rate decrease (slash, circuit breaker limit)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -48,7 +48,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
      */
     function test_negativeYield_updatesLastRate() public {
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -57,7 +57,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         uint256 lastRateBefore = wrapper.getLastRate();
 
         // Slash
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -73,14 +73,14 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
     function test_negativeYield_maintainsSolvency() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5); // Large yield
+        _simulateYieldPercent(1); // 1% yield (circuit breaker limit)
 
         // Trigger accrual
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Simulate 30% rate decrease
-        _simulateSlashPercent(5);
+        // Simulate 1% rate decrease (circuit breaker limit)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -102,7 +102,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate rate decrease (no fees to reduce)
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // Should not revert
         vm.prank(owner);
@@ -122,7 +122,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         uint256 totalAssetsBefore = wrapper.totalAssets();
 
         // Simulate rate decrease
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         uint256 totalAssetsAfter = wrapper.totalAssets();
 
@@ -136,14 +136,14 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
     function test_negativeYield_totalAssetsCalculationCorrect() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
         // Simulate rate decrease
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // totalAssets should equal sUSDS value minus claimable fees
         uint256 susdsBalance = susds.balanceOf(address(wrapper));
@@ -162,7 +162,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
     function test_negativeYield_multipleSlashes_feesUnchanged() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -170,15 +170,15 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
 
         uint256 feesBefore = wrapper.getClaimableFees();
 
-        // First slash: 10%
-        _simulateSlashPercent(5);
+        // First slash: 1% (circuit breaker limit)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Second slash: 10%
-        _simulateSlashPercent(5);
+        // Second slash: 1% (circuit breaker limit)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -196,7 +196,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
     function test_negativeYield_followedByPositiveYield() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -204,8 +204,8 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
 
         uint256 feesAfterFirstYield = wrapper.getClaimableFees();
 
-        // Slash 10%
-        _simulateSlashPercent(5);
+        // Slash 1% (circuit breaker limit)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -216,7 +216,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         assertEq(feesAfterSlash, feesAfterFirstYield, "Fees should not decrease after slash");
 
         // Generate more yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -235,14 +235,14 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
     function test_negativeYield_extremeSlash() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
         wrapper.setFee(DEFAULT_FEE);
 
-        // Slash 90%
-        _simulateSlashPercent(5);
+        // Slash 1% (circuit breaker limit)
+        _simulateSlashPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -263,7 +263,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate rate decrease
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // Should be able to redeem
         uint256 shares = wrapper.balanceOf(alphixHook);
@@ -284,7 +284,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate rate decrease
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // Should be able to withdraw
         uint256 maxWithdraw = wrapper.maxWithdraw(alphixHook);
@@ -303,7 +303,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         _depositAsHook(1000e18, alphixHook);
 
         // Simulate rate decrease
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // Should be able to deposit more
         usds.mint(alphixHook, 500e18);
@@ -321,7 +321,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
     function test_negativeYield_collectFeesAfterSlash() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -331,7 +331,7 @@ contract NegativeYieldTest is BaseAlphix4626WrapperSky {
         assertGt(feesBefore, 0, "Should have fees");
 
         // Slash
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // Collect fees (should still work)
         vm.prank(owner);

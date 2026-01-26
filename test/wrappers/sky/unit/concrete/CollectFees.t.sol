@@ -20,7 +20,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_asOwner_succeeds() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -43,7 +43,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_nonOwner_reverts() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alice));
         vm.prank(alice);
@@ -56,7 +56,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_asHook_reverts() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, alphixHook));
         vm.prank(alphixHook);
@@ -71,7 +71,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_accruesYieldFirst() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Get claimable fees (includes pending yield)
         uint256 claimableFees = wrapper.getClaimableFees();
@@ -90,7 +90,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_resetsFees() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -112,7 +112,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_emitsEvent() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -137,7 +137,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
 
         // Deposit (no fees will accrue)
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         assertEq(wrapper.getClaimableFees(), 0, "Should have no fees");
 
@@ -155,7 +155,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_maintainsSolvency() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -176,7 +176,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_totalAssetsUnchanged() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -201,7 +201,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_multipleCollections() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // First collection
         vm.prank(owner);
@@ -210,7 +210,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
         uint256 firstCollection = susds.balanceOf(treasury);
 
         // Generate more yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Second collection
         vm.prank(owner);
@@ -228,7 +228,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
 
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Collect to original treasury
         vm.prank(owner);
@@ -238,7 +238,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
         assertGt(treasuryBalance, 0, "treasury should have fees");
 
         // Generate more yield
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Change treasury and collect
         vm.prank(owner);
@@ -260,7 +260,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_afterNegativeYield() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Trigger accrual
         vm.prank(owner);
@@ -269,7 +269,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
         uint256 feesBeforeSlash = wrapper.getClaimableFees();
 
         // Slash (simulate rate decrease)
-        _simulateSlashPercent(5);
+        _simulateSlashPercent(1);
 
         // Trigger accrual for rate update
         vm.prank(owner);
@@ -293,7 +293,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_deposit_afterCollectFees() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Collect fees
         vm.prank(owner);
@@ -355,16 +355,15 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
     function test_collectFees_zeroTreasury_reverts() public {
         // Setup: deposit and generate yield
         _depositAsHook(1000e18, alphixHook);
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Use vm.store to set _yieldTreasury to address(0)
-        // Storage slot 8 contains: _paused (1 byte), _fee (3 bytes), _yieldTreasury (20 bytes)
-        // We need to preserve _paused and _fee while zeroing _yieldTreasury
-        // Read current slot value first
-        bytes32 currentSlot8 = vm.load(address(wrapper), bytes32(uint256(8)));
-        // Mask to keep only the first 4 bytes (_paused + _fee) and zero out _yieldTreasury
+        // Storage layout: _yieldTreasury is at slot 8, offset 4 (packed with _paused and _fee)
+        // We need to clear only the _yieldTreasury bytes while preserving _paused and _fee
+        bytes32 slot8 = vm.load(address(wrapper), bytes32(uint256(8)));
+        // Clear bytes 4-23 (address is 20 bytes) while keeping bytes 0-3 (_paused + _fee)
         bytes32 mask = bytes32(uint256(0xFFFFFFFF)); // Keep first 4 bytes
-        bytes32 newSlot8 = currentSlot8 & mask; // Zero out _yieldTreasury (bytes 4-23)
+        bytes32 newSlot8 = slot8 & mask; // Zero out the address part
         vm.store(address(wrapper), bytes32(uint256(8)), newSlot8);
 
         // Verify treasury is now zero
@@ -390,7 +389,7 @@ contract CollectFeesTest is BaseAlphix4626WrapperSky {
         uint256 totalSusds = susds.balanceOf(address(wrapper));
 
         // Generate some yield so currentRate > lastRate
-        _simulateYieldPercent(5);
+        _simulateYieldPercent(1);
 
         // Use vm.store to set _accumulatedFees >= totalSusds
         // Storage slot for _accumulatedFees is slot 12 (from forge inspect storage-layout)
