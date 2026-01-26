@@ -21,7 +21,7 @@ This repository contains protocol-specific ERC-4626 vault implementations. Each 
 
 ## Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                        Alphix Hook                              │
 │              (Authorized depositor/withdrawer)                  │
@@ -153,7 +153,7 @@ forge coverage --report lcov --no-match-coverage "lib/|script/"
 
 ### Test Structure
 
-```
+```text
 test/
 ├── <protocol>/
 │   ├── Base<Protocol>.t.sol       # Shared test setup
@@ -204,7 +204,7 @@ To add support for a new DeFi protocol:
 
 ### Template Structure
 
-```
+```text
 src/<protocol>/
 ├── Alphix4626Wrapper<Protocol>.sol
 └── interfaces/
