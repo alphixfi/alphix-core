@@ -230,7 +230,7 @@ contract SyncRateFuzzTest is BaseAlphix4626WrapperSky {
     /**
      * @notice Fuzz test: syncRate followed by withdraw maintains solvency.
      * @param depositAmount The deposit amount.
-     * @param withdrawPercent The percentage to withdraw (1-100).
+     * @param withdrawPercent The percentage to withdraw (1-99).
      * @param yieldPercent The yield percentage.
      */
     function testFuzz_syncRate_thenWithdraw_maintainsSolvency(

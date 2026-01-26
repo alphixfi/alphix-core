@@ -42,7 +42,7 @@ contract GettersTest is BaseAlphix4626WrapperSky {
         uint256 fees = wrapper.getClaimableFees();
 
         // Total = seed + deposit = 1001e18
-        // Yield = 10% of totalAssets
+        // Yield = 1% of totalAssets (circuit breaker limit)
         // Fee = 10% of yield (DEFAULT_FEE = 100_000)
         // Fees are in sUSDS
         assertGt(fees, 0, "Should have claimable fees after yield");
