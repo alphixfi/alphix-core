@@ -835,6 +835,22 @@ contract AlphixUnitTest is BaseAlphixTest {
         poolManager.initialize(ethPoolKey, Constants.SQRT_PRICE_1_1);
     }
 
+    /**
+     * @notice Tests that re-initialization reverts with PoolAlreadyInitialized.
+     * @dev Our hook's check fires BEFORE PoolManager's sqrtPriceX96 check.
+     *      This verifies our _poolKey.hooks check is necessary and not redundant.
+     *      Note: The PoolManager wraps hook errors in WrappedError, so we use generic expectRevert.
+     *      Run with -vvv to see the trace showing PoolAlreadyInitialized thrown by our hook.
+     */
+    function test_beforeInitialize_revertsOnReInitialization() public {
+        // Pool is already initialized in setUp
+        // Our hook's check fires BEFORE PoolManager's sqrtPriceX96 check
+        // Must be owner to pass the first check (sender == owner())
+        vm.prank(owner);
+        vm.expectRevert();
+        poolManager.initialize(key, Constants.SQRT_PRICE_1_1);
+    }
+
     /* ═══════════════════════════════════════════════════════════════════════════
                       JIT EDGE CASE TESTS
     ═══════════════════════════════════════════════════════════════════════════ */

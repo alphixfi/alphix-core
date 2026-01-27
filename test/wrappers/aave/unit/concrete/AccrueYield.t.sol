@@ -326,4 +326,83 @@ contract AccrueYieldTest is BaseAlphix4626WrapperAave {
 
         _assertSolvent();
     }
+
+    /**
+     * @notice Tests yield accrual when lastBalance is 0.
+     * @dev This edge case can occur when:
+     *      1. Owner redeems all seed liquidity (emptying wrapper)
+     *      2. Someone directly transfers aTokens to the wrapper
+     *      3. setFee() triggers _accrueYield() with lastBalance == 0
+     */
+    function test_accrueYield_withZeroLastBalance() public {
+        // Get owner's seed shares
+        uint256 ownerShares = wrapper.balanceOf(owner);
+
+        // Owner redeems all their seed shares
+        vm.prank(owner);
+        wrapper.redeem(ownerShares, owner, owner);
+
+        // Verify _lastWrapperBalance is 0
+        assertEq(wrapper.getLastWrapperBalance(), 0, "lastWrapperBalance should be 0");
+
+        // Simulate "yield" by directly minting aTokens to the wrapper
+        // This simulates aTokens being sent directly to the contract
+        uint256 directTransferAmount = 100e6;
+        aToken.simulateYield(address(wrapper), directTransferAmount);
+
+        // Trigger _accrueYield via setFee
+        // This should hit the else branch: lastBalance == 0, newWrapperBalance > 0
+        vm.recordLogs();
+        vm.prank(owner);
+        wrapper.setFee(DEFAULT_FEE);
+
+        // Verify YieldAccrued event was emitted
+        bytes32 yieldAccruedSelector = keccak256("YieldAccrued(uint256,uint256,uint256)");
+        Vm.Log[] memory entries = vm.getRecordedLogs();
+        bool found = false;
+        for (uint256 i = 0; i < entries.length; i++) {
+            if (entries[i].topics[0] == yieldAccruedSelector) {
+                (uint256 yieldAmount, uint256 feeAmount,) = abi.decode(entries[i].data, (uint256, uint256, uint256));
+                // With lastBalance == 0, standard fee is applied: feeAmount = totalYield * fee / MAX_FEE
+                assertEq(yieldAmount, directTransferAmount, "Yield should equal direct transfer");
+                uint256 expectedFee = directTransferAmount * DEFAULT_FEE / MAX_FEE;
+                assertEq(feeAmount, expectedFee, "Fee should be standard rate on yield");
+                found = true;
+                break;
+            }
+        }
+        assertTrue(found, "YieldAccrued event not emitted");
+
+        // Also verify getClaimableFees() works correctly
+        // At this point, _lastWrapperBalance has been updated by _accrueYield()
+        uint256 expectedTotalFees = directTransferAmount * DEFAULT_FEE / MAX_FEE;
+        assertEq(wrapper.getClaimableFees(), expectedTotalFees, "Claimable fees should match");
+    }
+
+    /**
+     * @notice Tests _getClaimableFees when lastBalance is 0 (before any accrual).
+     */
+    function test_getClaimableFees_withZeroLastBalance() public {
+        // Get owner's seed shares
+        uint256 ownerShares = wrapper.balanceOf(owner);
+
+        // Owner redeems all their seed shares
+        vm.prank(owner);
+        wrapper.redeem(ownerShares, owner, owner);
+
+        // Verify _lastWrapperBalance is 0
+        assertEq(wrapper.getLastWrapperBalance(), 0, "lastWrapperBalance should be 0");
+
+        // Simulate yield by directly minting aTokens
+        uint256 directTransferAmount = 100e6;
+        aToken.simulateYield(address(wrapper), directTransferAmount);
+
+        // Call getClaimableFees BEFORE triggering _accrueYield
+        // This exercises _getClaimableFees with lastBalance == 0
+        uint256 claimableFees = wrapper.getClaimableFees();
+
+        // With lastBalance == 0, standard fee applies
+        uint256 expectedFees = directTransferAmount * DEFAULT_FEE / MAX_FEE;
+        assertEq(claimableFees, expectedFees, "Claimable fees with zero lastBalance");
+    }
 }
