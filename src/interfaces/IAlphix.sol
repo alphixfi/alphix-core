@@ -50,14 +50,6 @@ interface IAlphix {
     );
 
     /**
-     * @dev Emitted upon pool configuration.
-     * @param poolId The pool ID of the pool that has been configured.
-     * @param initialFee The initial fee of the pool that has been configured.
-     * @param initialTargetRatio The initial target ratio of the pool that has been configured.
-     */
-    event PoolConfigured(PoolId indexed poolId, uint24 initialFee, uint256 initialTargetRatio);
-
-    /**
      * @dev Emitted when pool params are updated.
      * @param minFee The min fee value.
      * @param maxFee The max fee value.
@@ -82,13 +74,6 @@ interface IAlphix {
         uint256 lowerSideFactor,
         uint256 upperSideFactor
     );
-
-    /**
-     * @dev Emitted at every global max adjustment rate change.
-     * @param oldGlobalMaxAdjRate The old global max adjustment rate.
-     * @param newGlobalMaxAdjRate The new global max adjustment rate.
-     */
-    event GlobalMaxAdjRateUpdated(uint256 oldGlobalMaxAdjRate, uint256 newGlobalMaxAdjRate);
 
     /* ERRORS */
 

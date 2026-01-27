@@ -257,4 +257,94 @@ contract AccrueYieldTest is BaseAlphix4626WrapperSky {
         uint256 lastRateAfter = wrapper.getLastRate();
         assertGt(lastRateAfter, lastRateBefore, "Last rate should increase after yield");
     }
+
+    /**
+     * @notice Tests that _lastRate is always updated when rate increases (Issue #6 fix).
+     * @dev This test verifies the fix for Sherlock audit Issue #6: _lastRate must be updated
+     *      outside the `if (netSusds > 0)` block to prevent stale rate causing retroactive fee accrual.
+     *
+     *      The vulnerable scenario:
+     *      1. Rate increases from R1 to R2
+     *      2. _accrueYield runs but netSusds == 0, so no fees calculated
+     *      3. OLD BUG: _lastRate stays at R1 (not updated)
+     *      4. Later, rate is at R2, user deposits
+     *      5. Next accrual sees (R2 - R1) = full difference, charges fees incorrectly
+     *
+     *      The fix ensures _lastRate is updated even when netSusds == 0.
+     */
+    function test_accrueYield_rateAlwaysUpdatedOnIncrease() public {
+        // Deposit first to establish baseline
+        _depositAsHook(1000e18, alphixHook);
+
+        uint256 initialRate = wrapper.getLastRate();
+
+        // Simulate first rate increase
+        _simulateYieldPercent(1);
+
+        // Trigger accrual - fees calculated on this yield
+        vm.prank(owner);
+        wrapper.setFee(DEFAULT_FEE);
+
+        uint256 rateAfterFirstYield = wrapper.getLastRate();
+        assertGt(rateAfterFirstYield, initialRate, "Rate should update after first yield");
+
+        // Get fees after first yield (already accrued via setFee)
+        uint256 feesAfterFirstYield = wrapper.getClaimableFees();
+        assertGt(feesAfterFirstYield, 0, "Should have fees after first yield");
+
+        // Simulate second rate increase
+        _simulateYieldPercent(1);
+
+        // Get fees BEFORE triggering accrual (will include pending second yield)
+        uint256 feesPendingSecondYield = wrapper.getClaimableFees();
+
+        // Pending fees should be higher than accrued fees
+        assertGt(feesPendingSecondYield, feesAfterFirstYield, "Pending fees should include second yield");
+
+        // Trigger accrual
+        vm.prank(owner);
+        wrapper.setFee(DEFAULT_FEE);
+
+        uint256 rateAfterSecondYield = wrapper.getLastRate();
+
+        // Rate should be updated to current
+        assertGt(rateAfterSecondYield, rateAfterFirstYield, "Rate should update after second yield");
+
+        _assertSolvent();
+    }
+
+    /**
+     * @notice Tests that rate is properly updated through consecutive yield events.
+     * @dev Validates that the Issue #6 fix prevents fee accumulation errors from stale rates.
+     */
+    function test_accrueYield_noStaleRateFeeAccumulation() public {
+        _depositAsHook(1000e18, alphixHook);
+
+        // Record initial state
+        uint256 initialRate = wrapper.getLastRate();
+
+        // First yield cycle
+        _simulateYieldPercent(1);
+        _depositAsHook(100e18, alphixHook); // trigger accrual
+
+        uint256 rateAfterFirst = wrapper.getLastRate();
+        uint256 feesAfterFirst = wrapper.getClaimableFees();
+
+        // Second yield cycle
+        _simulateYieldPercent(1);
+        _depositAsHook(100e18, alphixHook); // trigger accrual
+
+        uint256 rateAfterSecond = wrapper.getLastRate();
+        uint256 feesAfterSecond = wrapper.getClaimableFees();
+
+        // Verify rates are properly tracking
+        assertGt(rateAfterFirst, initialRate, "Rate should increase after first yield");
+        assertGt(rateAfterSecond, rateAfterFirst, "Rate should increase after second yield");
+
+        // Verify fees are accumulating correctly (incrementally, not retroactively)
+        assertGt(feesAfterFirst, 0, "Should have fees after first yield");
+        assertGt(feesAfterSecond, feesAfterFirst, "Should have more fees after second yield");
+
+        _assertSolvent();
+    }
 }

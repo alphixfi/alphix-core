@@ -83,9 +83,12 @@ contract AlphixETH is Alphix {
 
     /**
      * @dev Validates pool initialization conditions for ETH pools.
-     *      Prevents re-initialization and requires native ETH as currency0.
+     *      Only owner can initialize, prevents re-initialization, and requires native ETH as currency0.
      */
-    function _beforeInitialize(address, PoolKey calldata key, uint160) internal view override returns (bytes4) {
+    function _beforeInitialize(address sender, PoolKey calldata key, uint160) internal view override returns (bytes4) {
+        // Only owner can initialize the pool at PoolManager level
+        if (sender != owner()) revert OwnableUnauthorizedAccount(sender);
+
         // Prevent re-initialization if pool already configured
         if (address(_poolKey.hooks) != address(0)) revert PoolAlreadyInitialized();
 

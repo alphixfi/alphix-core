@@ -435,22 +435,41 @@ contract Alphix4626WrapperAave is ERC4626, IAlphix4626WrapperAave, Ownable2Step,
      * @dev Called before any state-changing operation that depends on accurate fee accounting.
      *      Emits {YieldAccrued} if new yield was generated since last accrual.
      *      Emits {NegativeYield} if balance decreased (e.g., slashing), reducing fees to cover loss.
+     *
+     *      Fee calculation splits yield between fee-owned and user-owned portions:
+     *      - Yield on fee-owned aTokens: 100% goes to fees (treasury's yield)
+     *      - Yield on user-owned aTokens: _fee% goes to fees
      */
     function _accrueYield() internal {
         uint256 newWrapperBalance = ATOKEN.balanceOf(address(this));
-        if (newWrapperBalance > _lastWrapperBalance) {
+        uint256 lastBalance = _lastWrapperBalance;
+        if (newWrapperBalance > lastBalance) {
             // Positive yield: accrue fees
-            uint256 newYield = newWrapperBalance - _lastWrapperBalance;
-            uint256 newFeesEarned = newYield.mulDiv(_fee, MAX_FEE);
+            uint256 totalYield = newWrapperBalance - lastBalance;
+            uint256 newFeesEarned;
+
+            if (lastBalance > 0) {
+                // Yield on fee-owned aTokens goes 100% to fees
+                // Cap feePortionYield to totalYield to prevent underflow (safety against edge cases)
+                uint256 feePortionYield = totalYield.mulDiv(_accumulatedFees, lastBalance).min(totalYield);
+                // Yield on user-owned aTokens: only _fee% goes to fees
+                uint256 userPortionYield = totalYield - feePortionYield;
+                uint256 feeOnUserYield = userPortionYield.mulDiv(_fee, MAX_FEE);
+                newFeesEarned = feePortionYield + feeOnUserYield;
+            } else {
+                // No previous balance (edge case after seed), apply standard fee
+                newFeesEarned = totalYield.mulDiv(_fee, MAX_FEE);
+            }
+
             // forge-lint: disable-next-line(unsafe-typecast)
             _accumulatedFees += uint128(newFeesEarned);
             // forge-lint: disable-next-line(unsafe-typecast)
             _lastWrapperBalance = uint128(newWrapperBalance);
-            emit YieldAccrued(newYield, newFeesEarned, newWrapperBalance);
-        } else if (newWrapperBalance < _lastWrapperBalance) {
+            emit YieldAccrued(totalYield, newFeesEarned, newWrapperBalance);
+        } else if (newWrapperBalance < lastBalance) {
             // Negative yield: reduce fees proportionally to the loss
-            uint256 loss = _lastWrapperBalance - newWrapperBalance;
-            uint256 feeLoss = uint256(_accumulatedFees).mulDiv(loss, _lastWrapperBalance);
+            uint256 loss = lastBalance - newWrapperBalance;
+            uint256 feeLoss = uint256(_accumulatedFees).mulDiv(loss, lastBalance);
             // forge-lint: disable-next-line(unsafe-typecast)
             _accumulatedFees -= uint128(feeLoss);
             // forge-lint: disable-next-line(unsafe-typecast)
@@ -562,18 +581,33 @@ contract Alphix4626WrapperAave is ERC4626, IAlphix4626WrapperAave, Ownable2Step,
      * @notice Calculates the current claimable fees without modifying state.
      * @return The total claimable fees including pending yield-based fees.
      * @dev Accounts for negative yield by reducing fees accordingly.
+     *      Mirrors _accrueYield logic: fee-owned yield goes 100% to fees, user-owned yield has _fee% taken.
      */
     function _getClaimableFees() internal view returns (uint256) {
         uint256 newWrapperBalance = ATOKEN.balanceOf(address(this));
-        if (newWrapperBalance > _lastWrapperBalance) {
+        uint256 lastBalance = _lastWrapperBalance;
+        if (newWrapperBalance > lastBalance) {
             // Positive yield: add pending fees
-            uint256 newYield = newWrapperBalance - _lastWrapperBalance;
-            uint256 newFeesEarned = newYield.mulDiv(_fee, MAX_FEE);
+            uint256 totalYield = newWrapperBalance - lastBalance;
+            uint256 newFeesEarned;
+
+            if (lastBalance > 0) {
+                // Yield on fee-owned aTokens goes 100% to fees
+                // Cap feePortionYield to totalYield to prevent underflow (safety against edge cases)
+                uint256 feePortionYield = totalYield.mulDiv(_accumulatedFees, lastBalance).min(totalYield);
+                // Yield on user-owned aTokens: only _fee% goes to fees
+                uint256 userPortionYield = totalYield - feePortionYield;
+                uint256 feeOnUserYield = userPortionYield.mulDiv(_fee, MAX_FEE);
+                newFeesEarned = feePortionYield + feeOnUserYield;
+            } else {
+                newFeesEarned = totalYield.mulDiv(_fee, MAX_FEE);
+            }
+
             return _accumulatedFees + newFeesEarned;
-        } else if (newWrapperBalance < _lastWrapperBalance) {
+        } else if (newWrapperBalance < lastBalance) {
             // Negative yield: reduce fees proportionally to the loss
-            uint256 loss = _lastWrapperBalance - newWrapperBalance;
-            uint256 feeLoss = uint256(_accumulatedFees).mulDiv(loss, _lastWrapperBalance);
+            uint256 loss = lastBalance - newWrapperBalance;
+            uint256 feeLoss = uint256(_accumulatedFees).mulDiv(loss, lastBalance);
             return _accumulatedFees - feeLoss;
         }
         return _accumulatedFees;

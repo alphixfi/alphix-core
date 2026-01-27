@@ -120,8 +120,11 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
     function test_beforeInitialize_revertsOnReInitialization() public {
         // Pool is already initialized in setUp
-        // Try to re-initialize via poolManager (which calls beforeInitialize)
-        // This should revert with PoolAlreadyInitialized because _poolKey.hooks is already set
+        // Our hook's check fires BEFORE PoolManager's sqrtPriceX96 check
+        // Must be owner to pass the first check (sender == owner())
+        // Note: The PoolManager wraps hook errors in WrappedError, so we use generic expectRevert
+        // The trace shows our PoolAlreadyInitialized error is thrown by the hook
+        vm.prank(owner);
         vm.expectRevert();
         poolManager.initialize(key, Constants.SQRT_PRICE_1_1);
     }

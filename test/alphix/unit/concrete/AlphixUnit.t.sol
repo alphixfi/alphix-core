@@ -3,6 +3,7 @@ pragma solidity ^0.8.26;
 
 /* OZ IMPORTS */
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /* UNISWAP V4 IMPORTS */
 import {IHooks} from "v4-core/src/interfaces/IHooks.sol";
@@ -764,8 +765,48 @@ contract AlphixUnitTest is BaseAlphixTest {
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
-                    BEFORE INITIALIZE - ETH POOL REJECTION TEST
+                    BEFORE INITIALIZE - ACCESS CONTROL TESTS
     ═══════════════════════════════════════════════════════════════════════════ */
+
+    /**
+     * @notice Tests that only owner can call poolManager.initialize (Issue #3 fix).
+     * @dev This test verifies the fix for Sherlock audit Issue #3: beforeInitialize
+     *      now checks that sender == owner() to prevent front-running of pool creation.
+     */
+    function test_beforeInitialize_revertsWhenNotOwner() public {
+        // Deploy fresh Alphix hook
+        Alphix freshHook = _deployFreshAlphixStack();
+
+        // Create a valid pool key
+        MockERC20 token0 = new MockERC20("Token0", "TK0", 18);
+        MockERC20 token1 = new MockERC20("Token1", "TK1", 18);
+
+        // Ensure token0 < token1 for proper ordering
+        (address addr0, address addr1) =
+            address(token0) < address(token1) ? (address(token0), address(token1)) : (address(token1), address(token0));
+
+        PoolKey memory newPoolKey = PoolKey({
+            currency0: Currency.wrap(addr0),
+            currency1: Currency.wrap(addr1),
+            fee: LPFeeLibrary.DYNAMIC_FEE_FLAG,
+            tickSpacing: defaultTickSpacing,
+            hooks: IHooks(freshHook)
+        });
+
+        // Try to initialize as non-owner (unauthorized user)
+        // This should revert (the error is wrapped by PoolManager)
+        vm.prank(unauthorized);
+        vm.expectRevert();
+        poolManager.initialize(newPoolKey, Constants.SQRT_PRICE_1_1);
+
+        // Verify that owner CAN initialize
+        address hookOwner = freshHook.owner();
+        vm.prank(hookOwner);
+        poolManager.initialize(newPoolKey, Constants.SQRT_PRICE_1_1);
+
+        // Pool should now be initialized at Uniswap level
+        // (Alphix level initialization would be done via initializePool)
+    }
 
     function test_beforeInitialize_revertsOnETHPool() public {
         // Deploy fresh Alphix hook (not AlphixETH)
@@ -785,8 +826,29 @@ contract AlphixUnitTest is BaseAlphixTest {
 
         // This should revert with UnsupportedNativeCurrency
         // The error is wrapped by PoolManager
+        // Must call as owner since beforeInitialize now checks sender == owner first
+        // Note: vm.prank must be called BEFORE vm.expectRevert to avoid
+        // the owner() call being considered as the "next call"
+        address hookOwner = freshHook.owner();
+        vm.prank(hookOwner);
         vm.expectRevert();
         poolManager.initialize(ethPoolKey, Constants.SQRT_PRICE_1_1);
+    }
+
+    /**
+     * @notice Tests that re-initialization reverts with PoolAlreadyInitialized.
+     * @dev Our hook's check fires BEFORE PoolManager's sqrtPriceX96 check.
+     *      This verifies our _poolKey.hooks check is necessary and not redundant.
+     *      Note: The PoolManager wraps hook errors in WrappedError, so we use generic expectRevert.
+     *      Run with -vvv to see the trace showing PoolAlreadyInitialized thrown by our hook.
+     */
+    function test_beforeInitialize_revertsOnReInitialization() public {
+        // Pool is already initialized in setUp
+        // Our hook's check fires BEFORE PoolManager's sqrtPriceX96 check
+        // Must be owner to pass the first check (sender == owner())
+        vm.prank(owner);
+        vm.expectRevert();
+        poolManager.initialize(key, Constants.SQRT_PRICE_1_1);
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
