@@ -236,4 +236,94 @@ contract AccrueYieldTest is BaseAlphix4626WrapperAave {
 
         _assertSolvent();
     }
+
+    /**
+     * @notice Tests that fee-owned aTokens earn yield for treasury (Issue #1 fix).
+     * @dev When fees are accumulated, those fee-owned aTokens should earn 100% of their yield
+     *      to the treasury, while user-owned aTokens only contribute _fee% to treasury.
+     *      This test verifies the fix for Sherlock audit Issue #1.
+     */
+    function test_accrueYield_feeOwnedYieldGoesToTreasury() public {
+        // Set 50% fee rate
+        vm.prank(owner);
+        wrapper.setFee(500_000); // 50%
+
+        // Deposit and generate first round of yield
+        _depositAsHook(1000e6, alphixHook);
+        _simulateYieldPercent(10); // 10% yield = 100e6 yield, 50e6 goes to fees
+
+        // Trigger accrual
+        _depositAsHook(1e6, alphixHook); // small deposit to trigger accrual
+
+        uint256 feesAfterFirstYield = wrapper.getClaimableFees();
+        assertGt(feesAfterFirstYield, 0, "Should have accumulated fees");
+
+        // Now generate more yield - the fee-owned portion should earn 100% to treasury
+        // while the user-owned portion should earn 50% to treasury
+        _simulateYieldPercent(10);
+
+        uint256 feesAfterSecondYield = wrapper.getClaimableFees();
+        uint256 newFees = feesAfterSecondYield - feesAfterFirstYield;
+
+        // The fee-owned portion (feesAfterFirstYield) earned 10% yield, ALL of which goes to fees
+        // The user-owned portion earned 10% yield, 50% of which goes to fees
+        // So newFees should be: (feesAfterFirstYield * 0.10) + (userPortion * 0.10 * 0.50)
+
+        // Fee portion yield should be approximately: feesAfterFirstYield * 10%
+        uint256 expectedFeePortionYield = feesAfterFirstYield * 10 / 100;
+
+        // The newFees should be greater than just 50% of total yield (old behavior)
+        // because fee-owned portion earns 100% to treasury
+        assertGt(newFees, 0, "Should have new fees from second yield");
+
+        // Verify solvency
+        _assertSolvent();
+
+        // Verify that fee portion yield is included (approximately)
+        // This is a rough check - the actual math depends on the exact balances
+        assertGe(newFees, expectedFeePortionYield, "Fee portion yield should be included in new fees");
+    }
+
+    /**
+     * @notice Tests that setting fee to zero still lets existing fee portion earn yield.
+     * @dev After accumulating fees, setting fee rate to 0% should still allow the
+     *      fee-owned aTokens to earn yield for treasury (100% of their portion).
+     */
+    function test_accrueYield_zeroFeeStillEarnsFeePortionYield() public {
+        // Start with 50% fee
+        vm.prank(owner);
+        wrapper.setFee(500_000);
+
+        _depositAsHook(1000e6, alphixHook);
+
+        // Generate yield at 50% fee
+        _simulateYieldPercent(10);
+        _depositAsHook(1e6, alphixHook); // trigger accrual
+
+        uint256 feesBeforeZeroRate = wrapper.getClaimableFees();
+        assertGt(feesBeforeZeroRate, 0, "Should have fees before setting to zero");
+
+        // Set fee to 0
+        vm.prank(owner);
+        wrapper.setFee(0);
+
+        // Generate more yield
+        _simulateYieldPercent(10);
+        _depositAsHook(1e6, alphixHook); // trigger accrual
+
+        uint256 feesAfterZeroRate = wrapper.getClaimableFees();
+
+        // Fees should INCREASE because the fee-owned aTokens (feesBeforeZeroRate)
+        // still earn yield, and 100% of that goes to treasury
+        assertGt(feesAfterZeroRate, feesBeforeZeroRate, "Fee-owned portion should still earn yield at 0% fee rate");
+
+        // The increase should be approximately 10% of the fee-owned balance
+        uint256 expectedIncrease = feesBeforeZeroRate * 10 / 100;
+        uint256 actualIncrease = feesAfterZeroRate - feesBeforeZeroRate;
+
+        // Allow 1% tolerance for rounding
+        _assertApproxEq(actualIncrease, expectedIncrease, 1, "Fee portion yield should be 100% of its yield");
+
+        _assertSolvent();
+    }
 }

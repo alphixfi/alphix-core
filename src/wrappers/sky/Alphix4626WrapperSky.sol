@@ -574,9 +574,10 @@ contract Alphix4626WrapperSky is ERC4626, IAlphix4626WrapperSky, Ownable2Step, R
                 uint256 feeSusds = feeUsds.mulDiv(RATE_PRECISION, currentRate);
                 // Update storage
                 _accumulatedFees += SafeCast.toUint128(feeSusds);
-                _lastRate = currentRate;
                 emit YieldAccrued(yieldUsds, feeSusds, currentRate);
             }
+            // Always update rate when it increases to prevent stale rate causing retroactive fee accrual
+            _lastRate = currentRate;
         } else if (currentRate < lastRate) {
             // Negative yield: update rate (already passed circuit breaker check)
             _lastRate = currentRate;

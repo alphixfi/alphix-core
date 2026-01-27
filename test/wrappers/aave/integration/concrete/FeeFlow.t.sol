@@ -72,6 +72,8 @@ contract FeeFlowTest is BaseAlphix4626WrapperAave {
 
     /**
      * @notice Tests fee to zero flow.
+     * @dev When fee rate is 0%, no fees are taken from USER yield. However,
+     *      the fee-owned aTokens still earn yield which goes 100% to treasury.
      */
     function test_feeFlow_setFeeToZero() public {
         uint256 deposit = 10_000e6;
@@ -89,9 +91,15 @@ contract FeeFlowTest is BaseAlphix4626WrapperAave {
         // Existing fees preserved
         assertEq(wrapper.getClaimableFees(), feesBefore, "Existing fees preserved");
 
-        // New yield generates no fees
+        // New yield: fee-owned portion still earns yield for treasury (100% of its yield)
+        // but no new fees from user-owned portion
         _simulateYieldPercent(10);
-        assertEq(wrapper.getClaimableFees(), feesBefore, "No new fees with zero rate");
+        uint256 feesAfter = wrapper.getClaimableFees();
+
+        // Fees should increase only by the yield on the fee-owned portion
+        // feesBefore earns 10% yield, all of which goes to fees
+        uint256 expectedFeeYield = feesBefore * 10 / 100;
+        _assertApproxEq(feesAfter - feesBefore, expectedFeeYield, 1, "Fee portion still earns yield for treasury");
 
         _assertSolvent();
     }

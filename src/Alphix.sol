@@ -170,9 +170,19 @@ contract Alphix is
 
     /**
      * @dev Validates pool initialization conditions.
-     *      Prevents re-initialization and rejects native ETH pools (use AlphixETH instead).
+     *      Only owner can initialize, prevents re-initialization, and rejects native ETH pools.
+     * @param sender The address that initiated the pool initialization (passed by PoolManager).
      */
-    function _beforeInitialize(address, PoolKey calldata key, uint160) internal view virtual override returns (bytes4) {
+    function _beforeInitialize(address sender, PoolKey calldata key, uint160)
+        internal
+        view
+        virtual
+        override
+        returns (bytes4)
+    {
+        // Only owner can initialize the pool at PoolManager level
+        if (sender != owner()) revert OwnableUnauthorizedAccount(sender);
+
         // Prevent re-initialization if pool already configured
         if (address(_poolKey.hooks) != address(0)) revert PoolAlreadyInitialized();
 
@@ -282,7 +292,6 @@ contract Alphix is
         _unpause();
 
         emit FeeUpdated(_poolId, 0, _initialFee, 0, _initialTargetRatio, _initialTargetRatio);
-        emit PoolConfigured(_poolId, _initialFee, _initialTargetRatio);
     }
 
     /// @inheritdoc IAlphix
@@ -725,7 +734,6 @@ contract Alphix is
         if (globalMaxAdjRate_ == 0 || globalMaxAdjRate_ > AlphixGlobalConstants.MAX_ADJUSTMENT_RATE) {
             revert InvalidParameter();
         }
-        emit GlobalMaxAdjRateUpdated(_globalMaxAdjRate, globalMaxAdjRate_);
         _globalMaxAdjRate = globalMaxAdjRate_;
     }
 
