@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-/* FORGE IMPORTS */
-import {console2} from "forge-std/Test.sol";
-
 /* UNISWAP V4 IMPORTS */
 import {IPoolManager} from "v4-core/src/interfaces/IPoolManager.sol";
 import {PoolKey} from "v4-core/src/types/PoolKey.sol";
@@ -13,9 +10,6 @@ import {Constants} from "v4-core/test/utils/Constants.sol";
 import {TickMath} from "v4-core/src/libraries/TickMath.sol";
 import {IPositionManager} from "v4-periphery/src/interfaces/IPositionManager.sol";
 import {StateLibrary} from "v4-core/src/libraries/StateLibrary.sol";
-
-/* OZ IMPORTS */
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /* SOLMATE IMPORTS */
 import {MockERC20} from "solmate/src/test/utils/mocks/MockERC20.sol";
@@ -199,7 +193,7 @@ contract AlphixWithAaveWrapperTest is BaseAlphixTest {
     /**
      * @notice Test that hook is correctly authorized on wrappers.
      */
-    function test_hookIsAuthorizedOnWrapper() public {
+    function test_hookIsAuthorizedOnWrapper() public view {
         assertTrue(aaveWrapper0.isAlphixHook(address(hook)), "Hook should be authorized on wrapper0");
         assertTrue(aaveWrapper1.isAlphixHook(address(hook)), "Hook should be authorized on wrapper1");
     }
@@ -253,7 +247,7 @@ contract AlphixWithAaveWrapperTest is BaseAlphixTest {
             Alphix(address(hook)).previewRemoveReHypothecatedLiquidity(100e18);
 
         vm.prank(alice);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18, 0, 0);
 
         uint256 aliceToken0After = MockERC20(Currency.unwrap(currency0)).balanceOf(alice);
         uint256 aliceToken1After = MockERC20(Currency.unwrap(currency1)).balanceOf(alice);
@@ -481,8 +475,7 @@ contract AlphixWithAaveWrapperTest is BaseAlphixTest {
         _addRegularLp(1000e18);
 
         uint256 shares = 100e18;
-        (uint256 depositAmount0, uint256 depositAmount1) =
-            Alphix(address(hook)).previewAddReHypothecatedLiquidity(shares);
+        Alphix(address(hook)).previewAddReHypothecatedLiquidity(shares);
 
         uint256 totalToken0Before = MockERC20(Currency.unwrap(currency0)).balanceOf(alice)
             + aToken0.balanceOf(address(aaveWrapper0)) + MockERC20(Currency.unwrap(currency0)).balanceOf(address(hook));
@@ -565,7 +558,7 @@ contract AlphixWithAaveWrapperTest is BaseAlphixTest {
         vm.startPrank(user);
         MockERC20(Currency.unwrap(currency0)).approve(address(hook), amount0);
         MockERC20(Currency.unwrap(currency1)).approve(address(hook), amount1);
-        Alphix(address(hook)).addReHypothecatedLiquidity(shares);
+        Alphix(address(hook)).addReHypothecatedLiquidity(shares, 0, 0);
         vm.stopPrank();
     }
 

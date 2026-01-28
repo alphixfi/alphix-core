@@ -51,29 +51,9 @@ interface IAlphix {
 
     /**
      * @dev Emitted when pool params are updated.
-     * @param minFee The min fee value.
-     * @param maxFee The max fee value.
-     * @param baseMaxFeeDelta The maximum fee delta per streak hit (expressed as uint24).
-     * @param lookbackPeriod The lookbackPeriod to consider for the EMA smoothing factor (expressed in days).
-     * @param minPeriod The minimum period between 2 fee updates (expressed in s).
-     * @param ratioTolerance The tolerated difference in ratio between current and target ratio to not be considered out of bounds.
-     * @param linearSlope The linear slope to consider for the dynamic fee algorithm.
-     * @param maxCurrentRatio The maximum allowed current ratio (to avoid extreme outliers).
-     * @param lowerSideFactor The downward multiplier to throttle our dynamic fee algorithm by side.
-     * @param upperSideFactor The upward multiplier to throttle our dynamic fee algorithm by side.
+     * @notice Call getPoolParams() to retrieve the current parameter values.
      */
-    event PoolParamsUpdated(
-        uint24 minFee,
-        uint24 maxFee,
-        uint24 baseMaxFeeDelta,
-        uint24 lookbackPeriod,
-        uint256 minPeriod,
-        uint256 ratioTolerance,
-        uint256 linearSlope,
-        uint256 maxCurrentRatio,
-        uint256 lowerSideFactor,
-        uint256 upperSideFactor
-    );
+    event PoolParamsUpdated();
 
     /* ERRORS */
 
@@ -105,7 +85,7 @@ interface IAlphix {
     /**
      * @dev Thrown when fee bounds are invalid.
      */
-    error InvalidFeeBounds(uint24 minFee, uint24 maxFee);
+    error InvalidFeeBounds();
 
     /**
      * @dev Thrown when initial fee is outside the configured pool params bounds.
@@ -125,7 +105,7 @@ interface IAlphix {
     /**
      * @dev Thrown when an invalid ratio is provided (outside pool params bounds).
      */
-    error InvalidCurrentRatio(uint256 ratio);
+    error InvalidCurrentRatio();
 
     /**
      * @dev Thrown when the pool key's hook address doesn't match this contract.

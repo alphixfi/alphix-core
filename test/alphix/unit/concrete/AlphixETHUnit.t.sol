@@ -143,7 +143,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
         address eoa = makeAddr("eoa");
 
         vm.prank(yieldManager);
-        vm.expectRevert(abi.encodeWithSelector(IReHypothecation.InvalidYieldSource.selector, eoa));
+        vm.expectRevert(abi.encodeWithSelector(IReHypothecation.InvalidYieldSource.selector));
         hook.setYieldSource(Currency.wrap(address(0)), eoa);
     }
 
@@ -169,7 +169,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         vm.prank(user1);
         vm.expectRevert(IReHypothecation.ZeroShares.selector);
-        hook.addReHypothecatedLiquidity{value: 0}(0);
+        hook.addReHypothecatedLiquidity{value: 0}(0, 0, 0);
     }
 
     function test_addReHypothecatedLiquidity_revertsOnInsufficientETH() public {
@@ -187,7 +187,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
         MockERC20(Currency.unwrap(key.currency1)).approve(address(hook), type(uint256).max);
 
         vm.expectRevert(IReHypothecation.InvalidMsgValue.selector);
-        hook.addReHypothecatedLiquidity{value: insufficientEth}(1e18);
+        hook.addReHypothecatedLiquidity{value: insufficientEth}(1e18, 0, 0);
         vm.stopPrank();
     }
 
@@ -208,7 +208,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         vm.startPrank(user1);
         MockERC20(Currency.unwrap(key.currency1)).approve(address(hook), type(uint256).max);
-        hook.addReHypothecatedLiquidity{value: excessEth}(1e18);
+        hook.addReHypothecatedLiquidity{value: excessEth}(1e18, 0, 0);
         vm.stopPrank();
 
         uint256 userEthAfter = user1.balance;
@@ -225,14 +225,14 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
     function test_removeReHypothecatedLiquidity_revertsOnZeroShares() public {
         vm.prank(user1);
         vm.expectRevert(IReHypothecation.ZeroShares.selector);
-        hook.removeReHypothecatedLiquidity(0);
+        hook.removeReHypothecatedLiquidity(0, 0, 0);
     }
 
     function test_removeReHypothecatedLiquidity_revertsOnInsufficientShares() public {
         // User has no shares, try to remove some
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IReHypothecation.InsufficientShares.selector, 100e18, 0));
-        hook.removeReHypothecatedLiquidity(100e18);
+        vm.expectRevert(abi.encodeWithSelector(IReHypothecation.InsufficientShares.selector));
+        hook.removeReHypothecatedLiquidity(100e18, 0, 0);
     }
 
     function test_removeReHypothecatedLiquidity_sendsETHToUser() public {
@@ -246,7 +246,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         vm.startPrank(user1);
         MockERC20(Currency.unwrap(key.currency1)).approve(address(hook), type(uint256).max);
-        hook.addReHypothecatedLiquidity{value: amount0Needed}(10e18);
+        hook.addReHypothecatedLiquidity{value: amount0Needed}(10e18, 0, 0);
         vm.stopPrank();
 
         // Check user has shares
@@ -258,7 +258,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         // Remove liquidity
         vm.prank(user1);
-        hook.removeReHypothecatedLiquidity(10e18);
+        hook.removeReHypothecatedLiquidity(10e18, 0, 0);
 
         // User should have received ETH
         uint256 ethAfter = user1.balance;
@@ -295,7 +295,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         vm.prank(user1);
         vm.expectRevert();
-        hook.addReHypothecatedLiquidity{value: 1 ether}(1e18);
+        hook.addReHypothecatedLiquidity{value: 1 ether}(1e18, 0, 0);
     }
 
     function test_removeReHypothecatedLiquidity_revertsWhenPaused() public {
@@ -304,7 +304,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         vm.prank(user1);
         vm.expectRevert();
-        hook.removeReHypothecatedLiquidity(1e18);
+        hook.removeReHypothecatedLiquidity(1e18, 0, 0);
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -328,7 +328,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
         vm.warp(block.timestamp + defaultPoolParams.minPeriod + 1);
 
         vm.prank(owner);
-        vm.expectRevert(abi.encodeWithSelector(IAlphix.InvalidCurrentRatio.selector, 0));
+        vm.expectRevert(abi.encodeWithSelector(IAlphix.InvalidCurrentRatio.selector));
         hook.poke(0);
     }
 
@@ -364,7 +364,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         vm.startPrank(user1);
         MockERC20(Currency.unwrap(key.currency1)).approve(address(hook), type(uint256).max);
-        hook.addReHypothecatedLiquidity{value: amount0Needed}(10e18);
+        hook.addReHypothecatedLiquidity{value: amount0Needed}(10e18, 0, 0);
         vm.stopPrank();
 
         // Verify shares exist in first yield source
@@ -409,7 +409,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         vm.startPrank(user1);
         MockERC20(Currency.unwrap(key.currency1)).approve(address(hook), type(uint256).max);
-        hook.addReHypothecatedLiquidity{value: amount0Needed}(10e18);
+        hook.addReHypothecatedLiquidity{value: amount0Needed}(10e18, 0, 0);
         vm.stopPrank();
 
         // Deploy new token vault and migrate
@@ -439,7 +439,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
         address eoa = makeAddr("eoa");
 
         vm.prank(yieldManager);
-        vm.expectRevert(abi.encodeWithSelector(IReHypothecation.InvalidYieldSource.selector, eoa));
+        vm.expectRevert(abi.encodeWithSelector(IReHypothecation.InvalidYieldSource.selector));
         hook.setYieldSource(key.currency1, eoa);
     }
 
@@ -487,10 +487,8 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
         MockERC20(Currency.unwrap(key.currency1)).approve(address(hook), type(uint256).max);
 
         // This should revert with YieldSourceNotConfigured
-        vm.expectRevert(
-            abi.encodeWithSelector(IReHypothecation.YieldSourceNotConfigured.selector, Currency.wrap(address(0)))
-        );
-        hook.addReHypothecatedLiquidity{value: 1 ether}(1e18);
+        vm.expectRevert(abi.encodeWithSelector(IReHypothecation.YieldSourceNotConfigured.selector));
+        hook.addReHypothecatedLiquidity{value: 1 ether}(1e18, 0, 0);
         vm.stopPrank();
     }
 
@@ -504,7 +502,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         vm.startPrank(user1);
         MockERC20(Currency.unwrap(key.currency1)).approve(address(hook), type(uint256).max);
-        hook.addReHypothecatedLiquidity{value: amount0Needed}(10e18);
+        hook.addReHypothecatedLiquidity{value: amount0Needed}(10e18, 0, 0);
         vm.stopPrank();
 
         // Now clear the ETH yield source (set to address(0))
@@ -541,10 +539,8 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
         MockERC20(Currency.unwrap(key.currency1)).approve(address(hook), type(uint256).max);
 
         // This should revert with YieldSourceNotConfigured for ETH (currency0 = address(0))
-        vm.expectRevert(
-            abi.encodeWithSelector(IReHypothecation.YieldSourceNotConfigured.selector, Currency.wrap(address(0)))
-        );
-        hook.addReHypothecatedLiquidity{value: 1 ether}(1e18);
+        vm.expectRevert(abi.encodeWithSelector(IReHypothecation.YieldSourceNotConfigured.selector));
+        hook.addReHypothecatedLiquidity{value: 1 ether}(1e18, 0, 0);
         vm.stopPrank();
 
         // Verify no ETH is stranded in the contract
@@ -562,7 +558,7 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         vm.startPrank(user1);
         MockERC20(Currency.unwrap(key.currency1)).approve(address(hook), type(uint256).max);
-        hook.addReHypothecatedLiquidity{value: amount0Needed}(5e18);
+        hook.addReHypothecatedLiquidity{value: amount0Needed}(5e18, 0, 0);
         vm.stopPrank();
 
         uint256 ethVaultBalanceAfter = ethVault.totalAssets();
@@ -581,14 +577,14 @@ contract AlphixETHUnitTest is BaseAlphixETHTest {
 
         vm.startPrank(user1);
         MockERC20(Currency.unwrap(key.currency1)).approve(address(hook), type(uint256).max);
-        hook.addReHypothecatedLiquidity{value: amount0Needed}(10e18);
+        hook.addReHypothecatedLiquidity{value: amount0Needed}(10e18, 0, 0);
         vm.stopPrank();
 
         uint256 userEthBefore = user1.balance;
 
         // Remove liquidity
         vm.prank(user1);
-        hook.removeReHypothecatedLiquidity(10e18);
+        hook.removeReHypothecatedLiquidity(10e18, 0, 0);
 
         uint256 userEthAfter = user1.balance;
 
