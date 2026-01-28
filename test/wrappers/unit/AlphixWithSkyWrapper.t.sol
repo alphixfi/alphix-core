@@ -204,7 +204,7 @@ contract AlphixWithSkyWrapperTest is BaseAlphixTest {
     /**
      * @notice Test that hook is correctly authorized on wrappers.
      */
-    function test_hookIsAuthorizedOnWrapper() public {
+    function test_hookIsAuthorizedOnWrapper() public view {
         assertTrue(skyWrapper0.isAlphixHook(address(hook)), "Hook should be authorized on wrapper0");
         assertTrue(skyWrapper1.isAlphixHook(address(hook)), "Hook should be authorized on wrapper1");
     }
@@ -221,7 +221,7 @@ contract AlphixWithSkyWrapperTest is BaseAlphixTest {
         _addRegularLp(1000e18);
 
         uint256 shares = 100e18;
-        (uint256 amount0, uint256 amount1) = Alphix(address(hook)).previewAddReHypothecatedLiquidity(shares);
+        Alphix(address(hook)).previewAddReHypothecatedLiquidity(shares);
 
         uint256 wrapperShares0Before = skyWrapper0.balanceOf(address(hook));
         uint256 wrapperShares1Before = skyWrapper1.balanceOf(address(hook));
@@ -258,7 +258,7 @@ contract AlphixWithSkyWrapperTest is BaseAlphixTest {
             Alphix(address(hook)).previewRemoveReHypothecatedLiquidity(100e18);
 
         vm.prank(alice);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18, 0, 0);
 
         uint256 aliceToken0After = MockERC20(Currency.unwrap(currency0)).balanceOf(alice);
         uint256 aliceToken1After = MockERC20(Currency.unwrap(currency1)).balanceOf(alice);
@@ -571,7 +571,7 @@ contract AlphixWithSkyWrapperTest is BaseAlphixTest {
         uint256 wrapper0SusdsBefore = susds0.balanceOf(address(skyWrapper0));
 
         vm.prank(alice);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(50e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(50e18, 0, 0);
 
         uint256 wrapper0SusdsAfter = susds0.balanceOf(address(skyWrapper0));
 
@@ -622,7 +622,7 @@ contract AlphixWithSkyWrapperTest is BaseAlphixTest {
         vm.startPrank(user);
         MockERC20(Currency.unwrap(currency0)).approve(address(hook), amount0);
         MockERC20(Currency.unwrap(currency1)).approve(address(hook), amount1);
-        Alphix(address(hook)).addReHypothecatedLiquidity(shares);
+        Alphix(address(hook)).addReHypothecatedLiquidity(shares, 0, 0);
         vm.stopPrank();
     }
 

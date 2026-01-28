@@ -268,7 +268,7 @@ contract Alphix is
 
         // Validate initial target ratio against pool params
         if (!_isValidRatio(_initialTargetRatio)) {
-            revert InvalidCurrentRatio(_initialTargetRatio);
+            revert InvalidCurrentRatio();
         }
 
         // Cache pool key and ID
@@ -335,7 +335,7 @@ contract Alphix is
         nonReentrant
         whenNotPaused
     {
-        if (!_isValidRatio(currentRatio)) revert InvalidCurrentRatio(currentRatio);
+        if (!_isValidRatio(currentRatio)) revert InvalidCurrentRatio();
 
         // Cooldown check
         if (block.timestamp < _lastFeeUpdate + _poolParams.minPeriod) {
@@ -386,7 +386,7 @@ contract Alphix is
         whenNotPaused
         returns (uint24 newFee, DynamicFeeLib.OobState memory newOobState, bool wouldUpdate)
     {
-        if (!_isValidRatio(currentRatio)) revert InvalidCurrentRatio(currentRatio);
+        if (!_isValidRatio(currentRatio)) revert InvalidCurrentRatio();
 
         (,,, uint24 currentFee) = poolManager.getSlot0(_poolId);
         (newFee, newOobState) = DynamicFeeLib.computeNewFee(
@@ -414,7 +414,7 @@ contract Alphix is
         nonReentrant
     {
         if (!ReHypothecationLib.isValidYieldSource(newYieldSource, currency)) {
-            revert InvalidYieldSource(newYieldSource);
+            revert InvalidYieldSource();
         }
 
         YieldSourceState storage state = _yieldSourceState[currency];
@@ -436,7 +436,7 @@ contract Alphix is
     /* REHYPOTHECATION - LIQUIDITY OPERATIONS */
 
     /// @inheritdoc IReHypothecation
-    function addReHypothecatedLiquidity(uint256 shares)
+    function addReHypothecatedLiquidity(uint256 shares, uint160 expectedSqrtPriceX96, uint24 maxPriceSlippage)
         external
         payable
         virtual
@@ -448,6 +448,9 @@ contract Alphix is
     {
         if (shares == 0) revert ZeroShares();
         if (msg.value > 0) revert InvalidMsgValue();
+
+        // Check slippage before any state changes
+        _checkPriceSlippage(expectedSqrtPriceX96, maxPriceSlippage);
 
         // Calculate amounts with rounding up (protocol-favorable for deposits)
         (uint256 amount0, uint256 amount1) = _convertSharesToAmountsForDeposit(shares);
@@ -475,7 +478,7 @@ contract Alphix is
     }
 
     /// @inheritdoc IReHypothecation
-    function removeReHypothecatedLiquidity(uint256 shares)
+    function removeReHypothecatedLiquidity(uint256 shares, uint160 expectedSqrtPriceX96, uint24 maxPriceSlippage)
         external
         virtual
         override
@@ -487,7 +490,10 @@ contract Alphix is
         if (shares == 0) revert ZeroShares();
 
         uint256 userBalance = balanceOf(msg.sender);
-        if (userBalance < shares) revert InsufficientShares(shares, userBalance);
+        if (userBalance < shares) revert InsufficientShares();
+
+        // Check slippage before any state changes
+        _checkPriceSlippage(expectedSqrtPriceX96, maxPriceSlippage);
 
         // Calculate amounts with rounding down (protocol-favorable for withdrawals)
         (uint256 amount0, uint256 amount1) = _convertSharesToAmountsForWithdrawal(shares);
@@ -668,7 +674,7 @@ contract Alphix is
             params.minFee < AlphixGlobalConstants.MIN_FEE || params.minFee > params.maxFee
                 || params.maxFee > LPFeeLibrary.MAX_LP_FEE
         ) {
-            revert InvalidFeeBounds(params.minFee, params.maxFee);
+            revert InvalidFeeBounds();
         }
 
         if (params.baseMaxFeeDelta < AlphixGlobalConstants.MIN_FEE || params.baseMaxFeeDelta > LPFeeLibrary.MAX_LP_FEE)
@@ -712,18 +718,7 @@ contract Alphix is
         ) revert InvalidParameter();
 
         _poolParams = params;
-        emit PoolParamsUpdated(
-            params.minFee,
-            params.maxFee,
-            params.baseMaxFeeDelta,
-            params.lookbackPeriod,
-            params.minPeriod,
-            params.ratioTolerance,
-            params.linearSlope,
-            params.maxCurrentRatio,
-            params.lowerSideFactor,
-            params.upperSideFactor
-        );
+        emit PoolParamsUpdated();
     }
 
     /**
@@ -744,6 +739,29 @@ contract Alphix is
      */
     function _isValidRatio(uint256 ratio) internal view returns (bool) {
         return ratio > 0 && ratio <= _poolParams.maxCurrentRatio;
+    }
+
+    /**
+     * @dev Validates that current price is within acceptable slippage of expected price.
+     * @param expectedSqrtPriceX96 The price user expects.
+     * @param maxPriceSlippage Maximum allowed deviation, same scale as LP fee (1000000 = 100%).
+     */
+    function _checkPriceSlippage(uint160 expectedSqrtPriceX96, uint24 maxPriceSlippage) internal view {
+        // Skip check if no slippage protection requested
+        if (expectedSqrtPriceX96 == 0) return;
+
+        (uint160 currentSqrtPriceX96,,,) = poolManager.getSlot0(_poolId);
+
+        // Calculate absolute difference
+        uint256 priceDiff = currentSqrtPriceX96 > expectedSqrtPriceX96
+            ? currentSqrtPriceX96 - expectedSqrtPriceX96
+            : expectedSqrtPriceX96 - currentSqrtPriceX96;
+
+        // Check: priceDiff / expectedPrice <= maxSlippage / MAX_LP_FEE
+        // Rearranged: priceDiff * MAX_LP_FEE <= expectedPrice * maxSlippage
+        if (priceDiff * LPFeeLibrary.MAX_LP_FEE > uint256(expectedSqrtPriceX96) * maxPriceSlippage) {
+            revert PriceSlippageExceeded(expectedSqrtPriceX96, currentSqrtPriceX96, maxPriceSlippage);
+        }
     }
 
     /* REHYPOTHECATION INTERNAL FUNCTIONS */
@@ -829,7 +847,7 @@ contract Alphix is
         if (amount == 0) return;
 
         YieldSourceState storage state = _yieldSourceState[currency];
-        if (state.yieldSource == address(0)) revert YieldSourceNotConfigured(currency);
+        if (state.yieldSource == address(0)) revert YieldSourceNotConfigured();
 
         uint256 sharesReceived = ReHypothecationLib.depositToYieldSource(state.yieldSource, currency, amount);
         state.sharesOwned += sharesReceived;
@@ -845,7 +863,7 @@ contract Alphix is
         if (amount == 0) return;
 
         YieldSourceState storage state = _yieldSourceState[currency];
-        if (state.yieldSource == address(0)) revert YieldSourceNotConfigured(currency);
+        if (state.yieldSource == address(0)) revert YieldSourceNotConfigured();
 
         uint256 sharesRedeemed = ReHypothecationLib.withdrawFromYieldSourceTo(state.yieldSource, amount, recipient);
         // Safe: subtraction only executes when sharesOwned > sharesRedeemed (explicit guard)

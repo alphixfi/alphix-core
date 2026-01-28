@@ -115,7 +115,7 @@ contract ReHypothecationInvariantsTest is StdInvariant, BaseAlphixTest {
         MockERC20(Currency.unwrap(currency0)).approve(address(hook), amount0);
         MockERC20(Currency.unwrap(currency1)).approve(address(hook), amount1);
 
-        try Alphix(address(hook)).addReHypothecatedLiquidity(shares) {
+        try Alphix(address(hook)).addReHypothecatedLiquidity(shares, 0, 0) {
             addLiquidityCount++;
             ghostTotalDeposited0 += amount0;
             ghostTotalDeposited1 += amount1;
@@ -140,7 +140,7 @@ contract ReHypothecationInvariantsTest is StdInvariant, BaseAlphixTest {
         (uint256 amount0, uint256 amount1) = Alphix(address(hook)).previewRemoveReHypothecatedLiquidity(shares);
 
         vm.prank(user);
-        try Alphix(address(hook)).removeReHypothecatedLiquidity(shares) {
+        try Alphix(address(hook)).removeReHypothecatedLiquidity(shares, 0, 0) {
             removeLiquidityCount++;
             ghostTotalWithdrawn0 += amount0;
             ghostTotalWithdrawn1 += amount1;

@@ -96,36 +96,36 @@ contract ReHypothecationUnitTest is Test {
     ═══════════════════════════════════════════════════════════════════════════ */
 
     function test_validateTickRange_lowerEqualsUpper() public {
-        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector, int24(100), int24(100)));
+        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector));
         harness.validateTickRange(100, 100, 60);
     }
 
     function test_validateTickRange_lowerGreaterThanUpper() public {
-        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector, int24(200), int24(100)));
+        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector));
         harness.validateTickRange(200, 100, 60);
     }
 
     function test_validateTickRange_lowerBelowMin() public {
         int24 belowMin = TickMath.MIN_TICK - 60;
-        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector, belowMin, int24(0)));
+        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector));
         harness.validateTickRange(belowMin, 0, 60);
     }
 
     function test_validateTickRange_upperAboveMax() public {
         int24 aboveMax = TickMath.MAX_TICK + 60;
-        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector, int24(0), aboveMax));
+        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector));
         harness.validateTickRange(0, aboveMax, 60);
     }
 
     function test_validateTickRange_lowerMisaligned() public {
         // 55 is not divisible by 60
-        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector, int24(55), int24(120)));
+        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector));
         harness.validateTickRange(55, 120, 60);
     }
 
     function test_validateTickRange_upperMisaligned() public {
         // 125 is not divisible by 60
-        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector, int24(0), int24(125)));
+        vm.expectRevert(abi.encodeWithSelector(ReHypothecationLib.InvalidTickRange.selector));
         harness.validateTickRange(0, 125, 60);
     }
 

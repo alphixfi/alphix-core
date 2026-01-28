@@ -183,7 +183,7 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
         // === Phase 3: Alice withdraws ===
         console2.log("=== Phase 3: Alice withdraws ===");
         vm.prank(alice);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18, 0, 0);
 
         uint256 aliceToken0Final = MockERC20(Currency.unwrap(currency0)).balanceOf(alice);
         uint256 received0 = aliceToken0Final - aliceToken0Initial;
@@ -231,10 +231,10 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
 
         // === Both withdraw ===
         vm.prank(alice);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18, 0, 0);
 
         vm.prank(bob);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18, 0, 0);
 
         assertEq(Alphix(address(hook)).balanceOf(alice), 0, "Alice should have 0 shares");
         assertEq(Alphix(address(hook)).balanceOf(bob), 0, "Bob should have 0 shares");
@@ -280,7 +280,7 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
 
         // Alice should still be able to withdraw
         vm.prank(alice);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(500e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(500e18, 0, 0);
 
         assertEq(Alphix(address(hook)).balanceOf(alice), 0, "Alice should have withdrawn all");
     }
@@ -324,7 +324,7 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
 
         // Alice can still withdraw
         vm.prank(alice);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18, 0, 0);
     }
 
     /* ═══════════════════════════════════════════════════════════════════════════
@@ -358,7 +358,7 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
 
         // Alice withdraws (triggers sUSDS -> USDS swap in PSM)
         vm.prank(alice);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18, 0, 0);
 
         uint256 psmUsds0AfterWithdraw = MockERC20(Currency.unwrap(currency0)).balanceOf(address(psm0));
         uint256 psmSusds0AfterWithdraw = susds0.balanceOf(address(psm0));
@@ -397,7 +397,7 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
 
         // === Round 4: Alice partial withdraw ===
         vm.prank(alice);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(50e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(50e18, 0, 0);
 
         // === Final: Everyone withdraws ===
         uint256 aliceShares = Alphix(address(hook)).balanceOf(alice);
@@ -411,14 +411,14 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
 
         if (aliceShares > 0) {
             vm.prank(alice);
-            Alphix(address(hook)).removeReHypothecatedLiquidity(aliceShares);
+            Alphix(address(hook)).removeReHypothecatedLiquidity(aliceShares, 0, 0);
         }
 
         vm.prank(bob);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(bobShares);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(bobShares, 0, 0);
 
         vm.prank(charlie);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(charlieShares);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(charlieShares, 0, 0);
 
         assertEq(Alphix(address(hook)).totalSupply(), 0, "All shares should be withdrawn");
     }
@@ -444,7 +444,7 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
 
         // Partial withdrawals
         vm.prank(alice);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(100e18, 0, 0);
 
         // Check solvency: wrapper sUSDS balance >= claimable fees
         uint256 wrapper0SusdsBalance = susds0.balanceOf(address(skyWrapper0));
@@ -463,11 +463,11 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
 
         if (aliceRemaining > 0) {
             vm.prank(alice);
-            Alphix(address(hook)).removeReHypothecatedLiquidity(aliceRemaining);
+            Alphix(address(hook)).removeReHypothecatedLiquidity(aliceRemaining, 0, 0);
         }
 
         vm.prank(bob);
-        Alphix(address(hook)).removeReHypothecatedLiquidity(bobRemaining);
+        Alphix(address(hook)).removeReHypothecatedLiquidity(bobRemaining, 0, 0);
 
         assertEq(Alphix(address(hook)).totalSupply(), 0, "All shares should be withdrawn");
     }
@@ -512,7 +512,7 @@ contract AlphixSkyWrapperFullCycleTest is BaseAlphixTest {
         vm.startPrank(user);
         MockERC20(Currency.unwrap(currency0)).approve(address(hook), amount0);
         MockERC20(Currency.unwrap(currency1)).approve(address(hook), amount1);
-        Alphix(address(hook)).addReHypothecatedLiquidity(shares);
+        Alphix(address(hook)).addReHypothecatedLiquidity(shares, 0, 0);
         vm.stopPrank();
     }
 
