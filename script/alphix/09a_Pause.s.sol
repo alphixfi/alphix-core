@@ -174,9 +174,8 @@ contract PauseScript is Script {
      *      (staticcall always reverts on state-mutating functions regardless of pause state).
      */
     function _testAddRHLiquidityReverts(Alphix alphix) internal returns (bool) {
-        (bool success, bytes memory data) = address(alphix).call(
-            abi.encodeWithSelector(Alphix.addReHypothecatedLiquidity.selector, 1e18, uint160(0), uint24(0))
-        );
+        (bool success, bytes memory data) = address(alphix)
+            .call(abi.encodeWithSelector(Alphix.addReHypothecatedLiquidity.selector, 1e18, uint160(0), uint24(0)));
         if (success) return false;
         // Verify revert reason is EnforcedPause()
         return data.length >= 4 && bytes4(data) == Pausable.EnforcedPause.selector;
@@ -188,9 +187,8 @@ contract PauseScript is Script {
      *      (staticcall always reverts on state-mutating functions regardless of pause state).
      */
     function _testRemoveRHLiquidityReverts(Alphix alphix) internal returns (bool) {
-        (bool success, bytes memory data) = address(alphix).call(
-            abi.encodeWithSelector(Alphix.removeReHypothecatedLiquidity.selector, 1e18, uint160(0), uint24(0))
-        );
+        (bool success, bytes memory data) = address(alphix)
+            .call(abi.encodeWithSelector(Alphix.removeReHypothecatedLiquidity.selector, 1e18, uint160(0), uint24(0)));
         if (success) return false;
         // Verify revert reason is EnforcedPause()
         return data.length >= 4 && bytes4(data) == Pausable.EnforcedPause.selector;
