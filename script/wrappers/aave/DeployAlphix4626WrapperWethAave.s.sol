@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.26;
 
-import {Script, console2 as console} from "forge-std/Script.sol";
+import {console2 as console} from "forge-std/Script.sol";
 import {Alphix4626WrapperWethAave} from "../../../src/wrappers/aave/Alphix4626WrapperWethAave.sol";
 import {IWETH} from "@aave-v3-core/misc/interfaces/IWETH.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {DeployBase} from "../DeployBase.s.sol";
 
 /**
  * @title DeployAlphix4626WrapperWethAave
@@ -27,7 +28,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  *    export SEED_LIQUIDITY=1000000000000000000  # 1 WETH (18 decimals)
  *
  * 3. Run deployment:
- *    forge script script/aave/DeployAlphix4626WrapperWethAave.s.sol:DeployAlphix4626WrapperWethAave \
+ *    forge script script/wrappers/aave/DeployAlphix4626WrapperWethAave.s.sol:DeployAlphix4626WrapperWethAave \
  *      --rpc-url $RPC_URL \
  *      --broadcast \
  *      --verify
@@ -43,7 +44,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  *    Polygon:  0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619 (WETH, not native MATIC)
  *    Base:     0x4200000000000000000000000000000000000006
  */
-contract DeployAlphix4626WrapperWethAave is Script {
+contract DeployAlphix4626WrapperWethAave is DeployBase {
     /* DEPLOYMENT PARAMETERS */
 
     // Aave V3 PoolAddressesProvider addresses by network
@@ -169,24 +170,4 @@ contract DeployAlphix4626WrapperWethAave is Script {
         console.log("Deployment verification passed!");
     }
 
-    /* HELPERS */
-
-    /// @notice Compute CREATE address for approval before deployment
-    function _computeCreateAddress(address deployer, uint64 nonce) internal pure returns (address) {
-        bytes memory data;
-        if (nonce == 0x00) {
-            data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), deployer, bytes1(0x80));
-        } else if (nonce <= 0x7f) {
-            data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), deployer, uint8(nonce));
-        } else if (nonce <= 0xff) {
-            data = abi.encodePacked(bytes1(0xd7), bytes1(0x94), deployer, bytes1(0x81), uint8(nonce));
-        } else if (nonce <= 0xffff) {
-            data = abi.encodePacked(bytes1(0xd8), bytes1(0x94), deployer, bytes1(0x82), uint16(nonce));
-        } else if (nonce <= 0xffffff) {
-            data = abi.encodePacked(bytes1(0xd9), bytes1(0x94), deployer, bytes1(0x83), uint24(nonce));
-        } else {
-            data = abi.encodePacked(bytes1(0xda), bytes1(0x94), deployer, bytes1(0x84), uint32(nonce));
-        }
-        return address(uint160(uint256(keccak256(data))));
-    }
 }

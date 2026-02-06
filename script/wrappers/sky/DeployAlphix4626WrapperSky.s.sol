@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.26;
 
-import {Script, console2 as console} from "forge-std/Script.sol";
+import {console2 as console} from "forge-std/Script.sol";
 import {Alphix4626WrapperSky} from "../../../src/wrappers/sky/Alphix4626WrapperSky.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPSM3} from "../../../src/wrappers/sky/interfaces/IPSM3.sol";
+import {DeployBase} from "../DeployBase.s.sol";
 
 /**
  * @title DeployAlphix4626WrapperSky
@@ -27,7 +28,7 @@ import {IPSM3} from "../../../src/wrappers/sky/interfaces/IPSM3.sol";
  *    export SKY_REFERRAL_CODE=0              # PSM referral code (optional)
  *
  * 3. Run deployment:
- *    forge script script/sky/DeployAlphix4626WrapperSky.s.sol:DeployAlphix4626WrapperSky \
+ *    forge script script/wrappers/sky/DeployAlphix4626WrapperSky.s.sol:DeployAlphix4626WrapperSky \
  *      --rpc-url $RPC_URL \
  *      --broadcast \
  *      --verify
@@ -39,7 +40,7 @@ import {IPSM3} from "../../../src/wrappers/sky/interfaces/IPSM3.sol";
  * @dev Network-specific PSM addresses:
  *    Base: 0x1601843c5E9bC251A3272907010AFa41Fa18347E
  */
-contract DeployAlphix4626WrapperSky is Script {
+contract DeployAlphix4626WrapperSky is DeployBase {
     /* DEPLOYMENT PARAMETERS */
 
     /// @notice The Spark PSM3 address
@@ -147,24 +148,4 @@ contract DeployAlphix4626WrapperSky is Script {
         console.log("Deployment verification passed!");
     }
 
-    /* HELPERS */
-
-    /// @notice Compute CREATE address for approval before deployment
-    function _computeCreateAddress(address deployer, uint64 nonce) internal pure returns (address) {
-        bytes memory data;
-        if (nonce == 0x00) {
-            data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), deployer, bytes1(0x80));
-        } else if (nonce <= 0x7f) {
-            data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), deployer, uint8(nonce));
-        } else if (nonce <= 0xff) {
-            data = abi.encodePacked(bytes1(0xd7), bytes1(0x94), deployer, bytes1(0x81), uint8(nonce));
-        } else if (nonce <= 0xffff) {
-            data = abi.encodePacked(bytes1(0xd8), bytes1(0x94), deployer, bytes1(0x82), uint16(nonce));
-        } else if (nonce <= 0xffffff) {
-            data = abi.encodePacked(bytes1(0xd9), bytes1(0x94), deployer, bytes1(0x83), uint24(nonce));
-        } else {
-            data = abi.encodePacked(bytes1(0xda), bytes1(0x94), deployer, bytes1(0x84), uint32(nonce));
-        }
-        return address(uint160(uint256(keccak256(data))));
-    }
 }
