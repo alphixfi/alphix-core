@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.26;
 
-import {console2 as console} from "forge-std/Script.sol";
+import {Script, console2 as console} from "forge-std/Script.sol";
 import {Alphix4626WrapperAave} from "../../../src/wrappers/aave/Alphix4626WrapperAave.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {DeployBase} from "../DeployBase.s.sol";
 
 /**
  * @title DeployAlphix4626WrapperAave
@@ -36,7 +35,7 @@ import {DeployBase} from "../DeployBase.s.sol";
  *    - Add Alphix Hooks via addAlphixHook()
  *    - Transfer ownership if needed via transferOwnership()
  */
-contract DeployAlphix4626WrapperAave is DeployBase {
+contract DeployAlphix4626WrapperAave is Script {
     /* DEPLOYMENT PARAMETERS */
 
     // Aave V3 PoolAddressesProvider addresses by network
@@ -95,7 +94,7 @@ contract DeployAlphix4626WrapperAave is DeployBase {
         // Approve seed liquidity before deployment
         // The constructor will transferFrom the deployer
         // Note: +1 because the approve tx itself consumes a nonce
-        IERC20(asset).approve(_computeCreateAddress(deployer, vm.getNonce(deployer) + 1), seedLiquidity);
+        IERC20(asset).approve(vm.computeCreateAddress(deployer, vm.getNonce(deployer) + 1), seedLiquidity);
 
         // Deploy wrapper
         wrapper = new Alphix4626WrapperAave(
@@ -125,8 +124,12 @@ contract DeployAlphix4626WrapperAave is DeployBase {
         poolAddressesProvider = vm.envOr("POOL_ADDRESSES_PROVIDER", address(0));
         shareName = vm.envOr("SHARE_NAME", string("Alphix Vault"));
         shareSymbol = vm.envOr("SHARE_SYMBOL", string("alphVAULT"));
-        initialFee = uint24(vm.envOr("INITIAL_FEE", uint256(100_000))); // Default 10%
         seedLiquidity = vm.envOr("SEED_LIQUIDITY", uint256(0));
+
+        // Read fee as uint256 first; validated and cast in _validateConfig
+        uint256 rawFee = vm.envOr("INITIAL_FEE", uint256(100_000)); // Default 10%
+        require(rawFee <= 1_000_000, "INITIAL_FEE too high (max 1_000_000)");
+        initialFee = uint24(rawFee);
     }
 
     function _validateConfig() internal view {
@@ -134,7 +137,8 @@ contract DeployAlphix4626WrapperAave is DeployBase {
         require(yieldTreasury != address(0), "YIELD_TREASURY not set");
         require(poolAddressesProvider != address(0), "POOL_ADDRESSES_PROVIDER not set");
         require(seedLiquidity > 0, "SEED_LIQUIDITY must be > 0");
-        require(initialFee <= 1_000_000, "INITIAL_FEE too high (max 1_000_000)");
+        require(bytes(shareName).length > 0, "SHARE_NAME must not be empty");
+        require(bytes(shareSymbol).length > 0, "SHARE_SYMBOL must not be empty");
     }
 
     function _verifyDeployment(Alphix4626WrapperAave wrapper, address deployer) internal view {

@@ -158,14 +158,15 @@ contract PauseScript is Script {
     }
 
     /**
-     * @dev Tests that computeFeeUpdate reverts when paused
+     * @dev Tests that computeFeeUpdate reverts with EnforcedPause when paused.
+     *      Uses a low-level call and checks the revert selector to avoid false positives.
      */
-    function _testComputeFeeUpdateReverts(Alphix alphix) internal view returns (bool) {
-        try alphix.computeFeeUpdate(1e18) {
-            return false; // Should have reverted
-        } catch {
-            return true; // Correctly reverted
-        }
+    function _testComputeFeeUpdateReverts(Alphix alphix) internal returns (bool) {
+        (bool success, bytes memory data) =
+            address(alphix).call(abi.encodeWithSelector(Alphix.computeFeeUpdate.selector, 1e18));
+        if (success) return false;
+        // Verify revert reason is EnforcedPause()
+        return data.length >= 4 && bytes4(data) == Pausable.EnforcedPause.selector;
     }
 
     /**

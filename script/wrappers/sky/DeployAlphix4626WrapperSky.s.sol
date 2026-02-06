@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.26;
 
-import {console2 as console} from "forge-std/Script.sol";
+import {Script, console2 as console} from "forge-std/Script.sol";
 import {Alphix4626WrapperSky} from "../../../src/wrappers/sky/Alphix4626WrapperSky.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IPSM3} from "../../../src/wrappers/sky/interfaces/IPSM3.sol";
-import {DeployBase} from "../DeployBase.s.sol";
 
 /**
  * @title DeployAlphix4626WrapperSky
@@ -40,7 +39,7 @@ import {DeployBase} from "../DeployBase.s.sol";
  * @dev Network-specific PSM addresses:
  *    Base: 0x1601843c5E9bC251A3272907010AFa41Fa18347E
  */
-contract DeployAlphix4626WrapperSky is DeployBase {
+contract DeployAlphix4626WrapperSky is Script {
     /* DEPLOYMENT PARAMETERS */
 
     /// @notice The Spark PSM3 address
@@ -96,7 +95,7 @@ contract DeployAlphix4626WrapperSky is DeployBase {
         // Approve seed liquidity before deployment
         // The constructor will transferFrom the deployer
         // Note: +1 because the approve tx itself consumes a nonce
-        IERC20(usds).approve(_computeCreateAddress(deployer, vm.getNonce(deployer) + 1), seedLiquidity);
+        IERC20(usds).approve(vm.computeCreateAddress(deployer, vm.getNonce(deployer) + 1), seedLiquidity);
 
         // Deploy wrapper
         wrapper = new Alphix4626WrapperSky(
@@ -128,16 +127,21 @@ contract DeployAlphix4626WrapperSky is DeployBase {
         yieldTreasury = vm.envOr("YIELD_TREASURY", address(0));
         shareName = vm.envOr("SKY_SHARE_NAME", string("Alphix sUSDS Vault"));
         shareSymbol = vm.envOr("SKY_SHARE_SYMBOL", string("alphsUSDS"));
-        initialFee = uint24(vm.envOr("INITIAL_FEE", uint256(100_000))); // Default 10%
         seedLiquidity = vm.envOr("SKY_SEED_LIQUIDITY", uint256(1 ether)); // Default 1 USDS
         referralCode = vm.envOr("SKY_REFERRAL_CODE", uint256(0));
+
+        // Read fee as uint256 first; validated and cast here to avoid silent truncation
+        uint256 rawFee = vm.envOr("INITIAL_FEE", uint256(100_000)); // Default 10%
+        require(rawFee <= 1_000_000, "INITIAL_FEE too high (max 1_000_000)");
+        initialFee = uint24(rawFee);
     }
 
     function _validateConfig() internal view {
         require(psm != address(0), "SKY_PSM_ADDRESS not set");
         require(yieldTreasury != address(0), "YIELD_TREASURY not set");
         require(seedLiquidity > 0, "SKY_SEED_LIQUIDITY must be > 0");
-        require(initialFee <= 1_000_000, "INITIAL_FEE too high (max 1_000_000)");
+        require(bytes(shareName).length > 0, "SKY_SHARE_NAME must not be empty");
+        require(bytes(shareSymbol).length > 0, "SKY_SHARE_SYMBOL must not be empty");
     }
 
     function _verifyDeployment(Alphix4626WrapperSky wrapper, address deployer) internal view {
