@@ -382,8 +382,7 @@ contract ReHypothecationTestHarness {
  */
 contract NonERC4626Contract {
     // Empty contract - no asset() function
-
-    }
+}
 
 /**
  * @title ZeroSharesVault
